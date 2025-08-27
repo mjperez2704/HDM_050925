@@ -7,13 +7,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Edit, Trash2, ChevronDown, Eye } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ChevronDown, Eye, Search } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { VisualInventory } from '@/components/inventory/visual-inventory';
 import { AddWarehouseForm } from '@/components/inventory/add-warehouse-form';
 import { AddSectionForm } from '@/components/inventory/add-section-form';
 import { AddCoordinateForm } from '@/components/inventory/add-coordinate-form';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const warehouseData = [
     {
@@ -21,8 +23,21 @@ const warehouseData = [
         description: 'Administra las secciones y coordenadas de este almacén.',
         sectionsCount: 2,
         sections: [
-            { name: 'Anaquel A1 - Pantallas', coordinatesCount: 0, coordinates: [] },
-            { name: 'Anaquel A2 - Baterías', coordinatesCount: 0, coordinates: [] }
+            { 
+              name: 'Anaquel A1 - Pantallas', 
+              coordinatesCount: 2, 
+              coordinates: [
+                { name: 'A1-001', skus: ['PAR-IP15-PAN'] },
+                { name: 'A1-002', skus: ['PAR-IP15-PAN'] },
+              ] 
+            },
+            { 
+              name: 'Anaquel A2 - Baterías', 
+              coordinatesCount: 1, 
+              coordinates: [
+                { name: 'A2-001', skus: ['PAR-SAM-S22-BAT'] }
+              ] 
+            }
         ]
     },
     {
@@ -30,7 +45,13 @@ const warehouseData = [
         description: 'Administra las secciones y coordenadas de este almacén.',
         sectionsCount: 1,
         sections: [
-            { name: 'Cajón Técnico 1', coordinatesCount: 0, coordinates: [] }
+            { 
+              name: 'Cajón Técnico 1', 
+              coordinatesCount: 1, 
+              coordinates: [
+                { name: 'CT1-001', skus: ['HER-DES-01'] }
+              ] 
+            }
         ]
     }
 ]
@@ -43,6 +64,8 @@ export default function WarehouseManagementPage() {
     const [isCoordinateModalOpen, setIsCoordinateModalOpen] = useState(false);
     const [selectedWarehouse, setSelectedWarehouse] = useState('');
     const [selectedSection, setSelectedSection] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredData, setFilteredData] = useState(warehouseData);
 
     const handleOpenSectionModal = (warehouseName: string) => {
         setSelectedWarehouse(warehouseName);
@@ -53,6 +76,33 @@ export default function WarehouseManagementPage() {
         setSelectedWarehouse(warehouseName);
         setSelectedSection(sectionName);
         setIsCoordinateModalOpen(true);
+    };
+    
+    const handleSearch = () => {
+        if (!searchTerm) {
+            setFilteredData(warehouseData);
+            return;
+        }
+
+        const lowercasedFilter = searchTerm.toLowerCase();
+        const filtered = warehouseData.map(warehouse => {
+            const filteredSections = warehouse.sections.map(section => {
+                const filteredCoordinates = section.coordinates.filter(coordinate => 
+                    coordinate.skus.some(sku => sku.toLowerCase().includes(lowercasedFilter))
+                );
+                if (filteredCoordinates.length > 0) {
+                    return { ...section, coordinates: filteredCoordinates, coordinatesCount: filteredCoordinates.length };
+                }
+                return null;
+            }).filter(Boolean);
+
+            if (filteredSections.length > 0) {
+                return { ...warehouse, sections: filteredSections as any, sectionsCount: filteredSections.length };
+            }
+            return null;
+        }).filter(Boolean);
+
+        setFilteredData(filtered as any);
     };
 
     return (
@@ -77,12 +127,32 @@ export default function WarehouseManagementPage() {
                                 </Button>
                             </div>
                         </div>
+                        
+                        <Card className="mb-6">
+                            <CardContent className="pt-6">
+                                <div className="flex flex-col sm:flex-row items-end gap-4">
+                                    <div className="w-full sm:w-auto flex-grow space-y-2">
+                                        <Label htmlFor="product-search">Localizar Producto / Herramienta</Label>
+                                        <Input
+                                            id="product-search"
+                                            placeholder="Introduce el SKU o ID del producto..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                        />
+                                    </div>
+                                    <Button onClick={handleSearch}>
+                                        <Search className="mr-2 h-4 w-4" />
+                                        Localizar
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
 
                         {showVisualInventory ? (
                             <VisualInventory />
                         ) : (
                             <div className="space-y-8">
-                                {warehouseData.map((warehouse, index) => (
+                                {filteredData.map((warehouse, index) => (
                                     <Card key={index}>
                                         <CardHeader>
                                             <div className="flex items-center justify-between">
@@ -98,7 +168,7 @@ export default function WarehouseManagementPage() {
                                             <CardDescription>{warehouse.description}</CardDescription>
                                         </CardHeader>
                                         <CardContent>
-                                            <Accordion type="single" collapsible className="w-full">
+                                            <Accordion type="multiple" defaultValue={warehouse.sections.map((_, sIndex) => `item-${sIndex}`)} className="w-full">
                                                 {warehouse.sections.map((section, sIndex) => (
                                                 <div key={sIndex} className="border rounded-md p-4 mb-4">
                                                     <AccordionItem value={`item-${sIndex}`} className="border-b-0">
@@ -116,10 +186,18 @@ export default function WarehouseManagementPage() {
                                                             </div>
                                                         </div>
                                                         <AccordionContent className="pt-4">
-                                                            <div className="text-center text-muted-foreground py-4">
-                                                                No hay coordenadas en esta sección.
-                                                            </div>
-                                                            <div className="flex justify-end">
+                                                             {section.coordinates.length > 0 ? (
+                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                                    {section.coordinates.map((coord, cIndex) => (
+                                                                        <Badge key={cIndex} variant="outline">{coord.name}</Badge>
+                                                                    ))}
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-center text-muted-foreground py-4">
+                                                                    No hay coordenadas en esta sección.
+                                                                </div>
+                                                            )}
+                                                            <div className="flex justify-end mt-4">
                                                                 <Button variant="outline" size="sm" onClick={() => handleOpenCoordinateModal(warehouse.name, section.name)}>
                                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                                     Agregar Coordenada
