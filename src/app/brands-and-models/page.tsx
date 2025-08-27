@@ -1,9 +1,11 @@
 import { Sidebar } from '@/components/sidebar/sidebar';
-import { Header } from '@/components/dashboard/header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 const brandsData = [
   {
@@ -28,7 +30,23 @@ export default function BrandsAndModelsPage() {
     <div className="flex min-h-screen w-full">
       <Sidebar />
       <div className="flex flex-1 flex-col bg-background">
-        <Header />
+        <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="secondary" size="icon" className="rounded-full">
+                    <Avatar>
+                    <AvatarFallback>AD</AvatarFallback>
+                    </Avatar>
+                    <span className="sr-only">Toggle user menu</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                <DropdownMenuItem>My Account</DropdownMenuItem>
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>Logout</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </header>
         <main className="flex-1 p-4 md:p-8">
           <div className="flex items-center justify-between mb-4">
             <div>

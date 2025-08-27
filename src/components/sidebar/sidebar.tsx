@@ -1,7 +1,7 @@
-
 "use client";
 
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
 import {
   LineChart,
   FileText,
@@ -38,15 +38,22 @@ import {
   Contact,
   Truck,
   ShoppingCart,
+  Phone,
 } from "lucide-react";
 import { SidebarItem, SidebarSubItem } from "./sidebar-item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export function Sidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="hidden w-64 flex-col border-r bg-card p-4 md:flex">
+      <div className="flex items-center gap-2 mb-4">
+        <Phone className="h-8 w-8 text-primary" />
+        <h1 className="text-xl font-bold">Hospital del Móvil</h1>
+      </div>
       <div className="flex-1 space-y-2">
-        <SidebarItem icon={LayoutGrid} label="Dashboard" />
+        <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/'} />
         <SidebarItem icon={Shield} label="Seguridad">
           <SidebarSubItem icon={Users} label="Usuarios" />
           <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
@@ -54,7 +61,7 @@ export function Sidebar() {
         <SidebarItem icon={Smartphone} label="Catálogos">
           <SidebarSubItem icon={Box} label="Productos" />
           <Link href="/brands-and-models">
-            <SidebarSubItem icon={Tags} label="Marcas y Modelos" />
+            <SidebarSubItem icon={Tags} label="Marcas y Modelos" isActive={pathname === '/brands-and-models'} />
           </Link>
           <SidebarSubItem icon={Wrench} label="Herramientas" />
         </SidebarItem>
