@@ -16,6 +16,7 @@ import { AddSectionForm } from '@/components/inventory/add-section-form';
 import { AddCoordinateForm } from '@/components/inventory/add-coordinate-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { AssignSkuForm } from '@/components/inventory/assign-sku-form';
 
 const warehouseData = [
     {
@@ -35,7 +36,7 @@ const warehouseData = [
               name: 'Anaquel A2 - Baterías', 
               coordinatesCount: 1, 
               coordinates: [
-                { name: 'A2-001', skus: ['PAR-SAM-S22-BAT'] }
+                { name: 'A2-001', skus: [] }
               ] 
             }
         ]
@@ -62,8 +63,10 @@ export default function WarehouseManagementPage() {
     const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
     const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
     const [isCoordinateModalOpen, setIsCoordinateModalOpen] = useState(false);
+    const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
     const [selectedWarehouse, setSelectedWarehouse] = useState('');
     const [selectedSection, setSelectedSection] = useState('');
+    const [selectedCoordinate, setSelectedCoordinate] = useState<{ name: string; skus: string[] } | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredData, setFilteredData] = useState(warehouseData);
 
@@ -76,6 +79,13 @@ export default function WarehouseManagementPage() {
         setSelectedWarehouse(warehouseName);
         setSelectedSection(sectionName);
         setIsCoordinateModalOpen(true);
+    };
+
+    const handleOpenAssignSkuModal = (warehouseName: string, sectionName: string, coordinate: { name: string; skus: string[] }) => {
+        setSelectedWarehouse(warehouseName);
+        setSelectedSection(sectionName);
+        setSelectedCoordinate(coordinate);
+        setIsAssignSkuModalOpen(true);
     };
     
     const handleSearch = () => {
@@ -187,9 +197,23 @@ export default function WarehouseManagementPage() {
                                                         </div>
                                                         <AccordionContent className="pt-4">
                                                              {section.coordinates.length > 0 ? (
-                                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
                                                                     {section.coordinates.map((coord, cIndex) => (
-                                                                        <Badge key={cIndex} variant="outline">{coord.name}</Badge>
+                                                                        <Button 
+                                                                            key={cIndex}
+                                                                            variant="outline" 
+                                                                            size="sm"
+                                                                            className="h-auto"
+                                                                            disabled={coord.skus.length >= 2}
+                                                                            onClick={() => handleOpenAssignSkuModal(warehouse.name, section.name, coord)}
+                                                                        >
+                                                                            <div className="flex flex-col items-start w-full">
+                                                                                <span className="font-semibold">{coord.name}</span>
+                                                                                <span className="text-xs text-muted-foreground">
+                                                                                    SKUs: {coord.skus.length}/2
+                                                                                </span>
+                                                                            </div>
+                                                                        </Button>
                                                                     ))}
                                                                 </div>
                                                             ) : (
@@ -229,6 +253,13 @@ export default function WarehouseManagementPage() {
             <AddWarehouseForm isOpen={isWarehouseModalOpen} onOpenChange={setIsWarehouseModalOpen} />
             <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouseName={selectedWarehouse} />
             <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} warehouseName={selectedWarehouse} sectionName={selectedSection} />
+            <AssignSkuForm 
+                isOpen={isAssignSkuModalOpen} 
+                onOpenChange={setIsAssignSkuModalOpen}
+                warehouseName={selectedWarehouse}
+                sectionName={selectedSection}
+                coordinateName={selectedCoordinate?.name}
+            />
         </SidebarProvider>
     );
 }

@@ -16,6 +16,7 @@ import { StockDetailsModal } from '@/components/inventory/stock-details-modal';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { cn } from '@/lib/utils';
+import { AssignSkuForm } from '@/components/inventory/assign-sku-form';
 
 const inventoryData = [
     {
@@ -89,6 +90,7 @@ type InventoryItem = typeof inventoryData[0];
 export default function InventoryPage() {
     const router = useRouter();
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
     const handleOpenDetails = (item: InventoryItem) => {
@@ -96,6 +98,11 @@ export default function InventoryPage() {
             setSelectedItem(item);
             setIsDetailsModalOpen(true);
         }
+    };
+
+    const handleOpenAssignSku = (item: InventoryItem) => {
+        setSelectedItem(item);
+        setIsAssignSkuModalOpen(true);
     };
     
     const handleAddMovement = () => {
@@ -179,6 +186,7 @@ export default function InventoryPage() {
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuItem onClick={() => handleOpenDetails(item)}>Ver Detalles</DropdownMenuItem>
                                                             <DropdownMenuItem onClick={handleAddMovement}>Ajustar Existencia</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenAssignSku(item)}>Asignar Coordenada</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
@@ -201,6 +209,11 @@ export default function InventoryPage() {
                     item={selectedItem}
                 />
             )}
+             <AssignSkuForm 
+                isOpen={isAssignSkuModalOpen} 
+                onOpenChange={setIsAssignSkuModalOpen}
+                selectedSku={selectedItem?.sku}
+            />
         </SidebarProvider>
     );
 }
