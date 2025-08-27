@@ -117,7 +117,9 @@ export function Sidebar() {
           <SidebarSubItem icon={Database} label="Base de Datos" />
           <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" />
           <SidebarSubItem icon={FileText} label="Políticas y Reglamentos" />
-          <SidebarSubItem icon={Hammer} label="Reglas de Negocio" />
+          <Link href="/settings/business-rules">
+            <SidebarSubItem icon={Hammer} label="Reglas de Negocio" isActive={pathname === '/settings/business-rules'} />
+          </Link>
           <SidebarSubItem icon={Clipboard} label="Formatos" />
           <Link href="/settings/manuals">
             <SidebarSubItem icon={BookUser} label="Manuales" isActive={pathname === '/settings/manuals'}/>
