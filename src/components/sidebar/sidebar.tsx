@@ -61,7 +61,9 @@ export function Sidebar() {
           <Link href="/security/users">
             <SidebarSubItem icon={Users} label="Usuarios" isActive={pathname === '/security/users'} />
           </Link>
-          <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
+          <Link href="/security/roles">
+            <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" isActive={pathname === '/security/roles'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Smartphone} label="Catálogos">
           <Link href="/products">
