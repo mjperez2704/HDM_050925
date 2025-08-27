@@ -77,7 +77,9 @@ export function Sidebar() {
           <SidebarSubItem icon={Wrench} label="Reparaciones" />
         </SidebarItem>
         <SidebarItem icon={Warehouse} label="Inventario">
-          <SidebarSubItem icon={Box} label="Inventario General" />
+          <Link href="/inventory">
+            <SidebarSubItem icon={Box} label="Inventario General" isActive={pathname === '/inventory'} />
+          </Link>
           <SidebarSubItem icon={Home} label="Gestión de Almacén" />
           <SidebarSubItem icon={ArrowRightLeft} label="Traslados" />
           <SidebarSubItem icon={FileCog} label="Ajustes" />
