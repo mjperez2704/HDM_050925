@@ -123,8 +123,12 @@ export function CustomSidebar() {
             <Link href="/administration/expenses">
              <SidebarSubItem icon={Calculator} label="Gastos" isActive={pathname === '/administration/expenses'} />
             </Link>
-            <SidebarSubItem icon={FileDown} label="Cuentas por Cobrar" />
-            <SidebarSubItem icon={FileUp} label="Cuentas por Pagar" />
+            <Link href="/administration/accounts-receivable">
+              <SidebarSubItem icon={FileDown} label="Cuentas por Cobrar" isActive={pathname === '/administration/accounts-receivable'} />
+            </Link>
+            <Link href="/administration/accounts-payable">
+              <SidebarSubItem icon={FileUp} label="Cuentas por Pagar" isActive={pathname === '/administration/accounts-payable'} />
+            </Link>
         </SidebarItem>
         <SidebarItem icon={HeartHandshake} label="CRM">
             <SidebarSubItem icon={Briefcase} label="Oportunidades" />
