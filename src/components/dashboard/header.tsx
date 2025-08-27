@@ -13,11 +13,12 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { PanelLeft } from 'lucide-react';
-import { Sidebar } from '@/components/sidebar/sidebar';
+import { CustomSidebar } from '@/components/sidebar/sidebar';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:justify-end">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
         <Sheet>
             <SheetTrigger asChild>
             <Button size="icon" variant="outline" className="sm:hidden">
@@ -26,9 +27,11 @@ export function Header() {
             </Button>
             </SheetTrigger>
             <SheetContent side="left" className="sm:max-w-xs p-0">
-                <Sidebar />
+                <CustomSidebar />
             </SheetContent>
         </Sheet>
+        <SidebarTrigger className="hidden md:flex" />
+      <div className="flex-1" />
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
@@ -39,12 +42,12 @@ export function Header() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
+          <DropdownMenuItem>Configuración</DropdownMenuItem>
+          <DropdownMenuItem>Soporte</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>

@@ -2,7 +2,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from 'next/navigation';
 import {
   LineChart,
@@ -44,28 +43,27 @@ import {
 } from "lucide-react";
 import { SidebarItem, SidebarSubItem } from "./sidebar-item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 
-export function Sidebar() {
+export function CustomSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-card sm:flex">
-      <div className="p-4">
-        <Link href="/dashboard">
-            <Image 
-                src="https://hospitaldelmovil.mega-shop-test.shop/shared/logo.png" 
-                alt="Logo de la empresa"
-                width={265}
-                height={100}
-                data-ai-hint="logo"
-                className="w-full h-auto"
-            />
-        </Link>
-      </div>
-      <nav className="flex-1 space-y-2 overflow-auto px-4">
-        <Link href="/dashboard">
-          <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/dashboard'} />
-        </Link>
+    <Sidebar>
+      <SidebarHeader>
+        <div className="p-4">
+            <h1 className="text-xl font-bold text-center">HOSPITAL DEL MOVIL</h1>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarMenu>
+        <SidebarMenuItem>
+          <Link href="/dashboard" className="w-full">
+            <SidebarMenuButton isActive={pathname === '/dashboard'} icon={LayoutGrid} >
+                Dashboard
+            </SidebarMenuButton>
+          </Link>
+        </SidebarMenuItem>
         <SidebarItem icon={Shield} label="Seguridad">
           <Link href="/security/users">
             <SidebarSubItem icon={Users} label="Usuarios" isActive={pathname === '/security/users'} />
@@ -162,15 +160,8 @@ export function Sidebar() {
             <SidebarSubItem icon={BookUser} label="Manuales" isActive={pathname === '/settings/manuals'}/>
           </Link>
         </SidebarItem>
-      </nav>
-      <div className="mt-auto p-4">
-        <div className="flex items-center p-2 rounded-md">
-            <Avatar className="h-9 w-9 mr-3">
-                <AvatarFallback>N</AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-foreground">Manuales</span>
-        </div>
-      </div>
-    </aside>
+        </SidebarMenu>
+      </SidebarContent>
+    </Sidebar>
   );
 }
