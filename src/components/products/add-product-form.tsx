@@ -102,16 +102,8 @@ export function AddProductForm({ isOpen, onOpenChange }: AddProductFormProps) {
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="alt-provider">Proveedor Alterno</Label>
-                    <Select>
-                    <SelectTrigger id="alt-provider">
-                        <SelectValue placeholder="Seleccione un proveedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="prov1">Proveedor 1</SelectItem>
-                        <SelectItem value="prov2">Proveedor 2</SelectItem>
-                    </SelectContent>
-                    </Select>
+                    <Label htmlFor="resupply-time">Tiempo para Resurtir (días)</Label>
+                    <Input id="resupply-time" type="number" placeholder="Ej. 15" />
                 </div>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
