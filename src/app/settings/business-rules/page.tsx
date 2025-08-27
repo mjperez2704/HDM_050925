@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Sidebar } from '@/components/sidebar/sidebar';
+import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -14,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Shield, Warehouse, Landmark, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { Header } from '@/components/dashboard/header';
 
 const InventoryRules = () => (
   <Card className="flex-1">
@@ -164,60 +166,46 @@ export default function BusinessRulesPage() {
     ];
 
     return (
-        <div className="flex min-h-screen w-full">
-            <Sidebar />
-            <div className="flex flex-1 flex-col bg-background">
-                <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="rounded-full">
-                            <Avatar>
-                            <AvatarFallback>AD</AvatarFallback>
-                            </Avatar>
-                            <span className="sr-only">Toggle user menu</span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem>My Account</DropdownMenuItem>
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
-                        <DropdownMenuItem>Logout</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
-                <main className="flex-1 p-4 md:p-8">
-                     <div className="mb-6">
-                        <h1 className="text-3xl font-bold">Reglas de Negocio</h1>
-                        <p className="text-muted-foreground">
-                            Establece y personaliza las reglas de funcionamiento y las restricciones del sistema.
-                        </p>
-                    </div>
-                    <div className="flex flex-col md:flex-row gap-8">
-                        <nav className="flex flex-col w-full md:w-64">
-                            {menuItems.map((item) => (
-                                <Button
-                                    key={item.id}
-                                    variant="ghost"
-                                    onClick={() => setActiveTab(item.id)}
-                                    className={cn(
-                                        "justify-start gap-3 px-4 py-2 text-left",
-                                        activeTab === item.id ? 'bg-muted font-semibold' : ''
-                                    )}
-                                >
-                                    <item.icon className="h-5 w-5" />
-                                    {item.label}
-                                </Button>
-                            ))}
-                        </nav>
-                        
-                        <div className="flex-1">
-                            {activeTab === 'inventory' && <InventoryRules />}
-                            {activeTab === 'security' && <PlaceholderSection title="Reglas de Seguridad" />}
-                            {activeTab === 'administration' && <PlaceholderSection title="Reglas de Administración" />}
-                            {activeTab === 'general' && <PlaceholderSection title="Reglas Generales" />}
+        <SidebarProvider>
+            <div className="flex min-h-screen w-full bg-muted/40">
+                <CustomSidebar />
+                <div className="flex flex-1 flex-col">
+                    <Header />
+                    <main className="flex-1 p-4 md:p-8">
+                         <div className="mb-6">
+                            <h1 className="text-3xl font-bold">Reglas de Negocio</h1>
+                            <p className="text-muted-foreground">
+                                Establece y personaliza las reglas de funcionamiento y las restricciones del sistema.
+                            </p>
                         </div>
-                    </div>
-                </main>
+                        <div className="flex flex-col md:flex-row gap-8">
+                            <nav className="flex flex-col w-full md:w-64">
+                                {menuItems.map((item) => (
+                                    <Button
+                                        key={item.id}
+                                        variant="ghost"
+                                        onClick={() => setActiveTab(item.id)}
+                                        className={cn(
+                                            "justify-start gap-3 px-4 py-2 text-left",
+                                            activeTab === item.id ? 'bg-muted font-semibold' : ''
+                                        )}
+                                    >
+                                        <item.icon className="h-5 w-5" />
+                                        {item.label}
+                                    </Button>
+                                ))}
+                            </nav>
+                            
+                            <div className="flex-1">
+                                {activeTab === 'inventory' && <InventoryRules />}
+                                {activeTab === 'security' && <PlaceholderSection title="Reglas de Seguridad" />}
+                                {activeTab === 'administration' && <PlaceholderSection title="Reglas de Administración" />}
+                                {activeTab === 'general' && <PlaceholderSection title="Reglas Generales" />}
+                            </div>
+                        </div>
+                    </main>
+                </div>
             </div>
-        </div>
+        </SidebarProvider>
     );
 }

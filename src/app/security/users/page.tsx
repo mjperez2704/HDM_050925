@@ -2,15 +2,16 @@
 "use client";
 
 import { useState } from 'react';
-import { Sidebar } from '@/components/sidebar/sidebar';
+import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddUserForm } from '@/components/security/add-user-form';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { Header } from '@/components/dashboard/header';
 
 const usersData = [
     {
@@ -43,27 +44,11 @@ export default function UsersPage() {
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
     return (
-        <>
-            <div className="flex min-h-screen w-full">
-                <Sidebar />
-                <div className="flex flex-1 flex-col bg-background">
-                    <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <Avatar>
-                                <AvatarFallback>AD</AvatarFallback>
-                                </Avatar>
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Mi Cuenta</DropdownMenuItem>
-                            <DropdownMenuItem>Configuración</DropdownMenuItem>
-                            <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </header>
+        <SidebarProvider>
+            <div className="flex min-h-screen w-full bg-muted/40">
+                <CustomSidebar />
+                <div className="flex flex-1 flex-col">
+                    <Header />
                     <main className="flex-1 p-4 md:p-8">
                         <Card>
                             <CardHeader>
@@ -126,6 +111,6 @@ export default function UsersPage() {
                 </div>
             </div>
             <AddUserForm isOpen={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen} />
-        </>
+        </SidebarProvider>
     );
 }

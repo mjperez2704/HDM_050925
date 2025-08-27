@@ -2,7 +2,7 @@
 "use client";
 
 import { useState } from 'react';
-import { Sidebar } from '@/components/sidebar/sidebar';
+import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -10,6 +10,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2, CheckCircle2 } from 'lucide-react';
 import { AddRoleForm } from '@/components/security/add-role-form';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { Header } from '@/components/dashboard/header';
 
 const rolesData = [
     {
@@ -48,27 +50,11 @@ export default function RolesPage() {
     const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
 
     return (
-        <>
-            <div className="flex min-h-screen w-full">
-                <Sidebar />
-                <div className="flex flex-1 flex-col bg-background">
-                    <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                            <Button variant="secondary" size="icon" className="rounded-full">
-                                <Avatar>
-                                <AvatarFallback>AD</AvatarFallback>
-                                </Avatar>
-                                <span className="sr-only">Toggle user menu</span>
-                            </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Mi Cuenta</DropdownMenuItem>
-                            <DropdownMenuItem>Configuración</DropdownMenuItem>
-                            <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </header>
+        <SidebarProvider>
+            <div className="flex min-h-screen w-full bg-muted/40">
+                <CustomSidebar />
+                <div className="flex flex-1 flex-col">
+                    <Header />
                     <main className="flex-1 p-4 md:p-8">
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -134,6 +120,6 @@ export default function RolesPage() {
                 </div>
             </div>
             <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} />
-        </>
+        </SidebarProvider>
     );
 }
