@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -53,7 +54,9 @@ export function Sidebar() {
         <h1 className="text-xl font-bold">Hospital del Móvil</h1>
       </div>
       <div className="flex-1 space-y-2">
-        <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/'} />
+        <Link href="/">
+          <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/'} />
+        </Link>
         <SidebarItem icon={Shield} label="Seguridad">
           <SidebarSubItem icon={Users} label="Usuarios" />
           <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
@@ -116,7 +119,9 @@ export function Sidebar() {
           <SidebarSubItem icon={FileText} label="Políticas y Reglamentos" />
           <SidebarSubItem icon={Hammer} label="Reglas de Negocio" />
           <SidebarSubItem icon={Clipboard} label="Formatos" />
-          <SidebarSubItem icon={BookUser} label="Manuales" />
+          <Link href="/settings/manuals">
+            <SidebarSubItem icon={BookUser} label="Manuales" isActive={pathname === '/settings/manuals'}/>
+          </Link>
         </SidebarItem>
       </div>
       <div className="mt-auto">
