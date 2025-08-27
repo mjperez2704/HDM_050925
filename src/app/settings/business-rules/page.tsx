@@ -51,27 +51,72 @@ const InventoryRules = () => (
 
         <AccordionItem value="seccion">
           <AccordionTrigger className="text-lg font-semibold">Reglas de Sección</AccordionTrigger>
-          <AccordionContent className="space-y-4 p-4 border rounded-lg">
-            <p className="text-sm text-muted-foreground">Define las reglas para una sección específica:</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Select>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar Almacén..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="main">Almacén Principal</SelectItem>
-                        <SelectItem value="secondary">Almacén Secundario</SelectItem>
-                    </SelectContent>
-                </Select>
-                 <Select>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Seleccionar Sección..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="a">Sección A</SelectItem>
-                        <SelectItem value="b">Sección B</SelectItem>
-                    </SelectContent>
-                </Select>
+          <AccordionContent className="space-y-6 p-4 border rounded-lg">
+            <div>
+              <p className="text-sm text-muted-foreground mb-2">Define las reglas para una sección específica:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Select defaultValue="main">
+                      <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar Almacén..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="main">Almacén Principal</SelectItem>
+                          <SelectItem value="secondary">Almacén Secundario</SelectItem>
+                      </SelectContent>
+                  </Select>
+                   <Select defaultValue="refacciones-apple">
+                      <SelectTrigger>
+                          <SelectValue placeholder="Seleccionar Sección..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="refacciones-apple">Refacciones Apple</SelectItem>
+                          <SelectItem value="accesorios">Accesorios</SelectItem>
+                      </SelectContent>
+                  </Select>
+              </div>
+            </div>
+            <div>
+                <p className="text-sm text-muted-foreground mb-4">Condiciones de la sección seleccionada:</p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                        <Label>Finalidad (USO)</Label>
+                        <Select defaultValue="venta">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="venta">Venta</SelectItem>
+                                <SelectItem value="reparacion">Reparación</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Estatus de SKU</Label>
+                        <Select defaultValue="usado">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="nuevo">Nuevo</SelectItem>
+                                <SelectItem value="usado">Usado</SelectItem>
+                                <SelectItem value="reacondicionado">Reacondicionado</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label>Marca Permitida</Label>
+                        <Select defaultValue="apple">
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="apple">Apple</SelectItem>
+                                <SelectItem value="samsung">Samsung</SelectItem>
+                                <SelectItem value="huawei">Huawei</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
             </div>
           </AccordionContent>
         </AccordionItem>
