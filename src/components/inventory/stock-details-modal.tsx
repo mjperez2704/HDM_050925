@@ -35,29 +35,29 @@ export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsMo
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl bg-slate-800 text-white border-slate-700">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="text-2xl">Detalle de Existencias: {item.name}</DialogTitle>
-          <div className="text-sm text-slate-400 flex items-center gap-2">
+          <div className="text-sm text-muted-foreground flex items-center gap-2 pt-2">
             <span>SKU: {item.sku}</span>
             <span>|</span>
             <span>Existencia Total:</span>
-            <Badge variant="destructive" className="bg-red-600 text-white">{item.stock}</Badge>
+            <Badge variant="default">{item.stock}</Badge>
           </div>
         </DialogHeader>
         <div className="py-4">
           <Table>
             <TableHeader>
-              <TableRow className="border-b-slate-600 hover:bg-slate-700">
-                <TableHead className="text-white">Almacén</TableHead>
-                <TableHead className="text-white">Sección</TableHead>
-                <TableHead className="text-white">Coordenada</TableHead>
-                <TableHead className="text-white text-right">Cantidad</TableHead>
+              <TableRow>
+                <TableHead>Almacén</TableHead>
+                <TableHead>Sección</TableHead>
+                <TableHead>Coordenada</TableHead>
+                <TableHead className="text-right">Cantidad</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {item.details.map((detail, index) => (
-                <TableRow key={index} className="border-b-slate-700 hover:bg-slate-700">
+                <TableRow key={index}>
                   <TableCell>{detail.warehouse}</TableCell>
                   <TableCell>{detail.section}</TableCell>
                   <TableCell>{detail.coordinate}</TableCell>
@@ -69,7 +69,7 @@ export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsMo
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button type="button" className="bg-red-700 hover:bg-red-800 text-white">
+            <Button type="button" variant="secondary">
               Cerrar
             </Button>
           </DialogClose>
