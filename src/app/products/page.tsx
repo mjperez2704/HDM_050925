@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from 'react';
 import { Sidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -5,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Filter, Upload, PlusCircle, MoreHorizontal } from 'lucide-react';
+import { AddProductForm } from '@/components/products/add-product-form';
 
 const productsData = [
     {
@@ -59,96 +63,104 @@ const productsData = [
 ];
 
 export default function ProductsPage() {
+    const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+
     return (
-        <div className="flex min-h-screen w-full">
-            <Sidebar />
-            <div className="flex flex-1 flex-col bg-background">
-                <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="secondary" size="icon" className="rounded-full">
-                            <Avatar>
-                            <AvatarFallback>AD</AvatarFallback>
-                            </Avatar>
-                            <span className="sr-only">Toggle user menu</span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuItem>My Account</DropdownMenuItem>
-                        <DropdownMenuItem>Settings</DropdownMenuItem>
-                        <DropdownMenuItem>Logout</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </header>
-                <main className="flex-1 p-4 md:p-8">
-                    <Card>
-                        <CardHeader>
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <CardTitle>Catálogo de Productos</CardTitle>
-                                    <CardDescription>Administra todos los productos, servicios y artículos del sistema.</CardDescription>
+        <>
+            <div className="flex min-h-screen w-full">
+                <Sidebar />
+                <div className="flex flex-1 flex-col bg-background">
+                    <header className="sticky top-0 flex h-16 items-center justify-end gap-4 border-b bg-background px-4 md:px-6 z-10">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button variant="secondary" size="icon" className="rounded-full">
+                                <Avatar>
+                                <AvatarFallback>AD</AvatarFallback>
+                                </Avatar>
+                                <span className="sr-only">Toggle user menu</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuItem>My Account</DropdownMenuItem>
+                            <DropdownMenuItem>Settings</DropdownMenuItem>
+                            <DropdownMenuItem>Logout</DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </header>
+                    <main className="flex-1 p-4 md:p-8">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <CardTitle>Catálogo de Productos</CardTitle>
+                                        <CardDescription>Administra todos los productos, servicios y artículos del sistema.</CardDescription>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline">
+                                            <Filter className="mr-2 h-4 w-4" />
+                                            Filtrar
+                                        </Button>
+                                        <Button variant="outline">
+                                            <Upload className="mr-2 h-4 w-4" />
+                                            Exportar
+                                        </Button>
+                                        <Button 
+                                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                            onClick={() => setIsAddProductModalOpen(true)}
+                                        >
+                                            <PlusCircle className="mr-2 h-4 w-4" />
+                                            Agregar Producto
+                                        </Button>
+                                    </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <Button variant="outline">
-                                        <Filter className="mr-2 h-4 w-4" />
-                                        Filtrar
-                                    </Button>
-                                    <Button variant="outline">
-                                        <Upload className="mr-2 h-4 w-4" />
-                                        Exportar
-                                    </Button>
-                                    <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                                        <PlusCircle className="mr-2 h-4 w-4" />
-                                        Agregar Producto
-                                    </Button>
-                                </div>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>SKU</TableHead>
-                                        <TableHead>Nombre</TableHead>
-                                        <TableHead>Unidad</TableHead>
-                                        <TableHead>Precio de Lista</TableHead>
-                                        <TableHead>Costo Promedio</TableHead>
-                                        <TableHead><span className="sr-only">Actions</span></TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {productsData.map((product) => (
-                                        <TableRow key={product.sku}>
-                                            <TableCell className="font-medium text-destructive underline">{product.sku}</TableCell>
-                                            <TableCell>{product.name}</TableCell>
-                                            <TableCell>{product.unit}</TableCell>
-                                            <TableCell>{product.listPrice}</TableCell>
-                                            <TableCell>{product.avgCost}</TableCell>
-                                            <TableCell>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <Button variant="ghost" className="h-8 w-8 p-0">
-                                                            <span className="sr-only">Open menu</span>
-                                                            <MoreHorizontal className="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem>Editar</DropdownMenuItem>
-                                                        <DropdownMenuItem>Eliminar</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
+                            </CardHeader>
+                            <CardContent>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>SKU</TableHead>
+                                            <TableHead>Nombre</TableHead>
+                                            <TableHead>Unidad</TableHead>
+                                            <TableHead>Precio de Lista</TableHead>
+                                            <TableHead>Costo Promedio</TableHead>
+                                            <TableHead><span className="sr-only">Actions</span></TableHead>
                                         </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                            <div className="pt-4 text-sm text-muted-foreground">
-                                Mostrando 1-7 de 7 productos
-                            </div>
-                        </CardContent>
-                    </Card>
-                </main>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {productsData.map((product) => (
+                                            <TableRow key={product.sku}>
+                                                <TableCell className="font-medium text-destructive underline">{product.sku}</TableCell>
+                                                <TableCell>{product.name}</TableCell>
+                                                <TableCell>{product.unit}</TableCell>
+                                                <TableCell>{product.listPrice}</TableCell>
+                                                <TableCell>{product.avgCost}</TableCell>
+                                                <TableCell>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                <span className="sr-only">Open menu</span>
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem>Eliminar</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                                <div className="pt-4 text-sm text-muted-foreground">
+                                    Mostrando 1-7 de 7 productos
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </main>
+                </div>
             </div>
-        </div>
+            <AddProductForm isOpen={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen} />
+        </>
     );
 }
