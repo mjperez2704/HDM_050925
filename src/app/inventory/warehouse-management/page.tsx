@@ -160,7 +160,7 @@ export default function WarehouseManagementPage() {
                                                     <CardTitle>{warehouse.name}</CardTitle>
                                                     <Badge variant="secondary">{warehouse.sectionsCount} secciones</Badge>
                                                 </div>
-                                                <Button variant="outline" size="sm" onClick={() => handleOpenSectionModal(warehouse.name)}>
+                                                <Button variant="default" size="sm" onClick={() => handleOpenSectionModal(warehouse.name)}>
                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                     Agregar Sección
                                                 </Button>
@@ -198,7 +198,7 @@ export default function WarehouseManagementPage() {
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-end mt-4">
-                                                                <Button variant="outline" size="sm" onClick={() => handleOpenCoordinateModal(warehouse.name, section.name)}>
+                                                                <Button variant="secondary" size="sm" onClick={() => handleOpenCoordinateModal(warehouse.name, section.name)}>
                                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                                     Agregar Coordenada
                                                                 </Button>
