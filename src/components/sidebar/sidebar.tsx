@@ -86,7 +86,9 @@ export function Sidebar() {
           <Link href="/inventory/warehouse-management">
              <SidebarSubItem icon={Home} label="Gestión de Almacén" isActive={pathname === '/inventory/warehouse-management'} />
           </Link>
-          <SidebarSubItem icon={ArrowRightLeft} label="Traslados" />
+          <Link href="/inventory/transfers">
+            <SidebarSubItem icon={ArrowRightLeft} label="Traslados" isActive={pathname === '/inventory/transfers'} />
+          </Link>
           <Link href="/inventory/adjustments">
             <SidebarSubItem icon={FileCog} label="Ajustes" isActive={pathname === '/inventory/adjustments'} />
           </Link>
