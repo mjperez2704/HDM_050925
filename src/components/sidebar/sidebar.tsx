@@ -107,7 +107,9 @@ export function Sidebar() {
           <SidebarSubItem icon={MessageSquare} label="Chat Interno" />
         </SidebarItem>
         <SidebarItem icon={Settings} label="Configuraciones">
-          <SidebarSubItem icon={Palette} label="Apariencia" />
+          <Link href="/settings/appearance">
+            <SidebarSubItem icon={Palette} label="Apariencia" isActive={pathname === '/settings/appearance'} />
+          </Link>
           <SidebarSubItem icon={Building2} label="Datos Empresa" />
           <SidebarSubItem icon={Database} label="Base de Datos" />
           <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" />
