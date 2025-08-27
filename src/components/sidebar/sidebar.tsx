@@ -101,7 +101,9 @@ export function Sidebar() {
               <SidebarSubItem icon={Users} label="Vendedores" isActive={pathname === '/administration/vendedores'} />
             </Link>
             <SidebarSubItem icon={FileText} label="Facturación" />
-            <SidebarSubItem icon={Calculator} label="Gastos" />
+            <Link href="/administration/expenses">
+             <SidebarSubItem icon={Calculator} label="Gastos" isActive={pathname === '/administration/expenses'} />
+            </Link>
             <SidebarSubItem icon={FileDown} label="Cuentas por Cobrar" />
             <SidebarSubItem icon={FileUp} label="Cuentas por Pagar" />
         </SidebarItem>
