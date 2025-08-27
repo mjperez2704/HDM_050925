@@ -113,7 +113,9 @@ export function Sidebar() {
           <Link href="/settings/appearance">
             <SidebarSubItem icon={Palette} label="Apariencia" isActive={pathname === '/settings/appearance'} />
           </Link>
-          <SidebarSubItem icon={Building2} label="Datos Empresa" />
+          <Link href="/settings/company-data">
+            <SidebarSubItem icon={Building2} label="Datos Empresa" isActive={pathname === '/settings/company-data'} />
+          </Link>
           <SidebarSubItem icon={Database} label="Base de Datos" />
           <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" />
           <Link href="/settings/policies">
@@ -139,3 +141,5 @@ export function Sidebar() {
     </aside>
   );
 }
+
+    
