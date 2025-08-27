@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, Sparkles } from 'lucide-react';
 
-const placeholderData = `Date,Sales
+const placeholderData = `Fecha,Ventas
 2024-01-01,1500
 2024-01-02,1750
 2024-01-03,1600
@@ -50,11 +50,11 @@ export function PredictiveAnalysis() {
       const result = await predictFutureSales(values);
       setPrediction(result);
     } catch (error) {
-      console.error("Prediction failed:", error);
+      console.error("La predicción falló:", error);
       toast({
         variant: "destructive",
-        title: "Prediction Failed",
-        description: "An error occurred while analyzing sales data. Please try again.",
+        title: "Predicción Fallida",
+        description: "Ocurrió un error al analizar los datos de ventas. Por favor, inténtalo de nuevo.",
       });
     } finally {
       setIsLoading(false);
@@ -64,9 +64,9 @@ export function PredictiveAnalysis() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Predictive Sales Analysis</CardTitle>
+        <CardTitle>Análisis Predictivo de Ventas</CardTitle>
         <CardDescription>
-          Use AI to analyze historical sales data (in CSV format) and forecast future trends.
+          Usa IA para analizar datos históricos de ventas (en formato CSV) y pronosticar tendencias futuras.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -77,10 +77,10 @@ export function PredictiveAnalysis() {
               name="historicalSalesData"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Historical Sales Data</FormLabel>
+                  <FormLabel>Datos Históricos de Ventas</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Paste your historical sales data in CSV format here."
+                      placeholder="Pega aquí tus datos históricos de ventas en formato CSV."
                       className="min-h-[200px] font-code"
                       {...field}
                     />
@@ -97,7 +97,7 @@ export function PredictiveAnalysis() {
               ) : (
                 <Sparkles className="mr-2 h-4 w-4" />
               )}
-              Analyze and Predict
+              Analizar y Predecir
             </Button>
           </CardFooter>
         </form>
@@ -106,7 +106,7 @@ export function PredictiveAnalysis() {
         <CardContent className="grid gap-4 pt-4">
             <Card>
                 <CardHeader>
-                    <CardTitle>Predicted Sales Trend</CardTitle>
+                    <CardTitle>Tendencia de Ventas Predicha</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p>{prediction.predictedSalesTrend}</p>
@@ -114,7 +114,7 @@ export function PredictiveAnalysis() {
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>Confidence Level</CardTitle>
+                    <CardTitle>Nivel de Confianza</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <p>{prediction.confidenceLevel}</p>

@@ -17,17 +17,17 @@ import {
 } from "@/components/ui/chart"
 
 const chartData = [
-  { month: "January", sales: 1860 },
-  { month: "February", sales: 3050 },
-  { month: "March", sales: 2370 },
-  { month: "April", sales: 730 },
-  { month: "May", sales: 2090 },
-  { month: "June", sales: 2140 },
+  { month: "Enero", sales: 1860 },
+  { month: "Febrero", sales: 3050 },
+  { month: "Marzo", sales: 2370 },
+  { month: "Abril", sales: 730 },
+  { month: "Mayo", sales: 2090 },
+  { month: "Junio", sales: 2140 },
 ]
 
 const chartConfig = {
   sales: {
-    label: "Sales",
+    label: "Ventas",
     color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig
@@ -36,8 +36,8 @@ export function SalesChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Sales Trend</CardTitle>
-        <CardDescription>Showing sales for the last 6 months</CardDescription>
+        <CardTitle>Tendencia de Ventas</CardTitle>
+        <CardDescription>Mostrando ventas de los últimos 6 meses</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>

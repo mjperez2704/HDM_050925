@@ -13,30 +13,29 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
 
 const salesData = [
-  { customer: "Olivia Martin", date: "2024-07-21", amount: "$1,999.00", status: "Paid" },
-  { customer: "Jackson Lee", date: "2024-07-20", amount: "$329.00", status: "Paid" },
-  { customer: "Isabella Nguyen", date: "2024-07-19", amount: "$150.00", status: "Pending" },
-  { customer: "William Kim", date: "2024-07-18", amount: "$499.50", status: "Paid" },
-  { customer: "Sofia Davis", date: "2024-07-17", amount: "$249.99", status: "Paid" },
+  { customer: "Olivia Martin", date: "2024-07-21", amount: "$1,999.00" },
+  { customer: "Jackson Lee", date: "2024-07-20", amount: "$329.00" },
+  { customer: "Isabella Nguyen", date: "2024-07-19", amount: "$150.00" },
+  { customer: "William Kim", date: "2024-07-18", amount: "$499.50" },
+  { customer: "Sofia Davis", date: "2024-07-17", amount: "$249.99" },
 ]
 
 export function RecentSales() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Recent Sales</CardTitle>
-        <CardDescription>A summary of your 5 most recent transactions.</CardDescription>
+        <CardTitle>Ventas Recientes</CardTitle>
+        <CardDescription>Un resumen de tus 5 transacciones más recientes.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Customer</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead className="text-right">Amount</TableHead>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead className="text-right">Monto</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

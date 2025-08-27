@@ -26,7 +26,7 @@ const chartData = [
 
 const chartConfig = {
   repairs: {
-    label: "Repairs",
+    label: "Reparaciones",
     color: "hsl(var(--accent))",
   },
 } satisfies ChartConfig
@@ -35,8 +35,8 @@ export function TopBrandsChart() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Top Brands Analysis</CardTitle>
-        <CardDescription>Top 5 most repaired mobile brands</CardDescription>
+        <CardTitle>Análisis de Marcas Populares</CardTitle>
+        <CardDescription>Top 5 de marcas de móviles más reparadas</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>

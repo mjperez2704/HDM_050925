@@ -58,7 +58,9 @@ export function Sidebar() {
           <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/'} />
         </Link>
         <SidebarItem icon={Shield} label="Seguridad">
-          <SidebarSubItem icon={Users} label="Usuarios" />
+          <Link href="/security/users">
+            <SidebarSubItem icon={Users} label="Usuarios" isActive={pathname === '/security/users'} />
+          </Link>
           <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
         </SidebarItem>
         <SidebarItem icon={Smartphone} label="Catálogos">
