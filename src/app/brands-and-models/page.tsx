@@ -9,6 +9,7 @@ import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AddBrandForm } from '@/components/brands-and-models/add-brand-form';
+import { AddModelForm } from '@/components/brands-and-models/add-model-form';
 
 const brandsData = [
   {
@@ -30,6 +31,13 @@ const brandsData = [
 
 export default function BrandsAndModelsPage() {
   const [isAddBrandModalOpen, setIsAddBrandModalOpen] = useState(false);
+  const [isAddModelModalOpen, setIsAddModelModalOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<string | undefined>(undefined);
+
+  const handleOpenAddModel = (brandName: string) => {
+    setSelectedBrand(brandName);
+    setIsAddModelModalOpen(true);
+  };
 
   return (
     <>
@@ -92,7 +100,7 @@ export default function BrandsAndModelsPage() {
                       </p>
                     </div>
                     <div className="mt-6 flex gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" onClick={() => handleOpenAddModel(brand.name)}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Agregar Modelo
                       </Button>
@@ -109,6 +117,7 @@ export default function BrandsAndModelsPage() {
         </div>
       </div>
       <AddBrandForm isOpen={isAddBrandModalOpen} onOpenChange={setIsAddBrandModalOpen} />
+      <AddModelForm isOpen={isAddModelModalOpen} onOpenChange={setIsAddModelModalOpen} brandName={selectedBrand} />
     </>
   );
 }
