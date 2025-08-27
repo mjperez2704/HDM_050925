@@ -45,17 +45,21 @@ export function AssignSkuForm({
         <div className="grid gap-4 py-4">
           <div className="space-y-2">
             <Label htmlFor="product-sku">Producto (SKU)</Label>
-            <Select defaultValue={selectedSku}>
-                <SelectTrigger id="product-sku">
-                    <SelectValue placeholder="Seleccione un SKU..." />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="par-ip15-pan">PAR-IP15-PAN - Pantalla iPhone 15</SelectItem>
-                    <SelectItem value="acc-cab-usbc">ACC-CAB-USBC - Cable USB-C 1m</SelectItem>
-                    <SelectItem value="equ-sam-s24">EQU-SAM-S24 - Samsung Galaxy S24</SelectItem>
-                    <SelectItem value="her-des-01">HER-DES-01 - Kit Desarmadores Precisión</SelectItem>
-                </SelectContent>
-            </Select>
+            {selectedSku ? (
+              <Input id="product-sku" value={selectedSku} disabled />
+            ) : (
+              <Select>
+                  <SelectTrigger id="product-sku">
+                      <SelectValue placeholder="Seleccione un SKU..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="par-ip15-pan">PAR-IP15-PAN - Pantalla iPhone 15</SelectItem>
+                      <SelectItem value="acc-cab-usbc">ACC-CAB-USBC - Cable USB-C 1m</SelectItem>
+                      <SelectItem value="equ-sam-s24">EQU-SAM-S24 - Samsung Galaxy S24</SelectItem>
+                      <SelectItem value="her-des-01">HER-DES-01 - Kit Desarmadores Precisión</SelectItem>
+                  </SelectContent>
+              </Select>
+            )}
           </div>
            {!coordinateName && (
              <div className="space-y-2">
