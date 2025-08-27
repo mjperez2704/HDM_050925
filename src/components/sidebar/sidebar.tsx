@@ -131,9 +131,15 @@ export function CustomSidebar() {
             </Link>
         </SidebarItem>
         <SidebarItem icon={HeartHandshake} label="CRM">
-            <SidebarSubItem icon={Briefcase} label="Oportunidades" />
-            <SidebarSubItem icon={Megaphone} label="Marketing" />
-            <SidebarSubItem icon={MessageSquare} label="Soporte y Quejas" />
+            <Link href="/crm/opportunities">
+              <SidebarSubItem icon={Briefcase} label="Oportunidades" isActive={pathname === '/crm/opportunities'} />
+            </Link>
+            <Link href="/crm/marketing">
+              <SidebarSubItem icon={Megaphone} label="Marketing" isActive={pathname === '/crm/marketing'} />
+            </Link>
+            <Link href="/crm/support">
+              <SidebarSubItem icon={MessageSquare} label="Soporte y Quejas" isActive={pathname === '/crm/support'} />
+            </Link>
         </SidebarItem>
         <SidebarItem icon={LineChart} label="Reportes">
           <SidebarSubItem icon={FileText} label="Predeterminados" />
