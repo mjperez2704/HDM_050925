@@ -117,7 +117,9 @@ export function Sidebar() {
           <SidebarSubItem icon={FileCog} label="Personalizados" />
         </SidebarItem>
         <SidebarItem icon={MessagesSquare} label="Comunicación">
-          <SidebarSubItem icon={Book} label="Bitácora" />
+          <Link href="/communication/log">
+            <SidebarSubItem icon={Book} label="Bitácora" isActive={pathname === '/communication/log'} />
+          </Link>
           <SidebarSubItem icon={MessageSquare} label="Solicitudes" />
           <SidebarSubItem icon={MessageSquare} label="Chat Interno" />
         </SidebarItem>
