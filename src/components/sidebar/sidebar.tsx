@@ -59,7 +59,9 @@ export function Sidebar() {
           <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
         </SidebarItem>
         <SidebarItem icon={Smartphone} label="Catálogos">
-          <SidebarSubItem icon={Box} label="Productos" />
+          <Link href="/products">
+            <SidebarSubItem icon={Box} label="Productos" isActive={pathname === '/products'} />
+          </Link>
           <Link href="/brands-and-models">
             <SidebarSubItem icon={Tags} label="Marcas y Modelos" isActive={pathname === '/brands-and-models'} />
           </Link>
