@@ -1,5 +1,7 @@
+
 "use client";
 
+import Link from "next/link";
 import {
   LineChart,
   FileText,
@@ -51,7 +53,9 @@ export function Sidebar() {
         </SidebarItem>
         <SidebarItem icon={Smartphone} label="Catálogos">
           <SidebarSubItem icon={Box} label="Productos" />
-          <SidebarSubItem icon={Tags} label="Marcas y Modelos" />
+          <Link href="/brands-and-models">
+            <SidebarSubItem icon={Tags} label="Marcas y Modelos" />
+          </Link>
           <SidebarSubItem icon={Wrench} label="Herramientas" />
         </SidebarItem>
         <SidebarItem icon={Contact} label="Contactos">
