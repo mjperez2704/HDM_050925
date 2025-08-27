@@ -79,7 +79,9 @@ export function CustomSidebar() {
           <Link href="/brands-and-models">
             <SidebarSubItem icon={Tags} label="Marcas y Modelos" isActive={pathname === '/brands-and-models'} />
           </Link>
-          <SidebarSubItem icon={Wrench} label="Herramientas" />
+          <Link href="/tools">
+            <SidebarSubItem icon={Wrench} label="Herramientas" isActive={pathname === '/tools'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Contact} label="Contactos">
           <Link href="/contacts/clients">
