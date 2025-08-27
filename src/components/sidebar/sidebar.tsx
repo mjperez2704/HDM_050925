@@ -87,7 +87,9 @@ export function Sidebar() {
              <SidebarSubItem icon={Home} label="Gestión de Almacén" isActive={pathname === '/inventory/warehouse-management'} />
           </Link>
           <SidebarSubItem icon={ArrowRightLeft} label="Traslados" />
-          <SidebarSubItem icon={FileCog} label="Ajustes" />
+          <Link href="/inventory/adjustments">
+            <SidebarSubItem icon={FileCog} label="Ajustes" isActive={pathname === '/inventory/adjustments'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Landmark} label="Administración">
             <SidebarSubItem icon={Contact} label="Empleados" />
@@ -145,5 +147,3 @@ export function Sidebar() {
     </aside>
   );
 }
-
-    
