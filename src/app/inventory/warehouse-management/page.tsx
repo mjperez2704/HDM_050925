@@ -74,16 +74,19 @@ export default function WarehouseManagementPage() {
                                             {warehouse.sections.map((section, sIndex) => (
                                             <div key={sIndex} className="border rounded-md p-4 mb-4">
                                                 <AccordionItem value={`item-${sIndex}`} className="border-b-0">
-                                                    <AccordionTrigger className="flex justify-between items-center w-full py-0 font-semibold hover:no-underline">
-                                                        <div className="flex items-center gap-4">
-                                                             <span>{section.name}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2 text-sm font-normal">
+                                                    <div className="flex justify-between items-center w-full">
+                                                        <AccordionTrigger className="flex-1 py-0 font-semibold hover:no-underline text-left">
+                                                            <div className="flex items-center gap-4">
+                                                                <span>{section.name}</span>
+                                                            </div>
+                                                        </AccordionTrigger>
+                                                        <div className="flex items-center gap-2 text-sm font-normal ml-4">
                                                             <span>{section.coordinatesCount} Coordenadas</span>
-                                                            <Button variant="ghost" size="icon" className="h-6 w-6"><Edit className="h-4 w-4" /></Button>
-                                                            <ChevronDown className="h-4 w-4 transition-transform duration-200" />
+                                                            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+                                                                <Edit className="h-4 w-4" />
+                                                            </Button>
                                                         </div>
-                                                    </AccordionTrigger>
+                                                    </div>
                                                     <AccordionContent className="pt-4">
                                                          <div className="text-center text-muted-foreground py-4">
                                                             No hay coordenadas en esta sección.
