@@ -12,10 +12,12 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Shield, Warehouse, Landmark, Settings } from 'lucide-react';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Shield, Warehouse, Landmark, Settings, PlusCircle, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { PinConfirmationModal } from '@/components/security/pin-confirmation-modal';
 
 const InventoryRules = () => (
   <Card className="flex-1">
@@ -143,6 +145,89 @@ const InventoryRules = () => (
   </Card>
 );
 
+const SecurityRules = () => {
+    const [usePin, setUsePin] = useState(true);
+    const [pinActions, setPinActions] = useState([
+        { id: 1, action: 'Eliminar Usuario', module: 'Seguridad' },
+        { id: 2, action: 'Aprobar Traslado de Inventario', module: 'Inventario' },
+    ]);
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+    const handlePinConfirm = (pin: string) => {
+        console.log("PIN Ingresado:", pin);
+        // Aquí iría la lógica de validación del PIN
+        setIsPinModalOpen(false);
+    };
+
+    return (
+        <Card className="flex-1">
+            <CardHeader>
+                <CardTitle>Reglas de Seguridad</CardTitle>
+                <CardDescription>Configura las políticas de seguridad y acceso del sistema.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-center justify-between rounded-lg border p-4">
+                    <div>
+                        <Label htmlFor="pin-security-switch" className="font-semibold">Usar PIN de seguridad de usuario</Label>
+                        <p className="text-sm text-muted-foreground">Activa esta opción para requerir un PIN de 4 dígitos para confirmar transacciones importantes.</p>
+                    </div>
+                    <Switch id="pin-security-switch" checked={usePin} onCheckedChange={setUsePin} />
+                </div>
+
+                {usePin && (
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <CardTitle>Acciones que Requieren PIN</CardTitle>
+                                    <CardDescription>Administra las acciones específicas que necesitarán confirmación con PIN.</CardDescription>
+                                </div>
+                                <Button size="sm" variant="outline" onClick={() => setIsPinModalOpen(true)}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Agregar Acción
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Acción</TableHead>
+                                        <TableHead>Módulo</TableHead>
+                                        <TableHead className="text-right">Quitar</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {pinActions.map(action => (
+                                        <TableRow key={action.id}>
+                                            <TableCell className="font-medium">{action.action}</TableCell>
+                                            <TableCell>{action.module}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                )}
+                 <div className="flex justify-end">
+                    <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Reglas de Seguridad</Button>
+                </div>
+            </CardContent>
+            <PinConfirmationModal 
+                isOpen={isPinModalOpen}
+                onOpenChange={setIsPinModalOpen}
+                onConfirm={handlePinConfirm}
+            />
+        </Card>
+    );
+};
+
+
 const PlaceholderSection = ({ title }: { title: string }) => (
     <Card className="flex-1">
         <CardHeader>
@@ -198,7 +283,7 @@ export default function BusinessRulesPage() {
                             
                             <div className="flex-1">
                                 {activeTab === 'inventory' && <InventoryRules />}
-                                {activeTab === 'security' && <PlaceholderSection title="Reglas de Seguridad" />}
+                                {activeTab === 'security' && <SecurityRules />}
                                 {activeTab === 'administration' && <PlaceholderSection title="Reglas de Administración" />}
                                 {activeTab === 'general' && <PlaceholderSection title="Reglas Generales" />}
                             </div>
