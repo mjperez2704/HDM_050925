@@ -97,7 +97,9 @@ export function Sidebar() {
             <Link href="/administration/employees">
               <SidebarSubItem icon={Contact} label="Empleados" isActive={pathname === '/administration/employees'} />
             </Link>
-            <SidebarSubItem icon={Users} label="Vendedores" />
+            <Link href="/administration/vendedores">
+              <SidebarSubItem icon={Users} label="Vendedores" isActive={pathname === '/administration/vendedores'} />
+            </Link>
             <SidebarSubItem icon={FileText} label="Facturación" />
             <SidebarSubItem icon={Calculator} label="Gastos" />
             <SidebarSubItem icon={FileDown} label="Cuentas por Cobrar" />
