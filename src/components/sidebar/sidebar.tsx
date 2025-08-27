@@ -116,7 +116,9 @@ export function Sidebar() {
           <Link href="/settings/company-data">
             <SidebarSubItem icon={Building2} label="Datos Empresa" isActive={pathname === '/settings/company-data'} />
           </Link>
-          <SidebarSubItem icon={Database} label="Base de Datos" />
+          <Link href="/settings/database">
+            <SidebarSubItem icon={Database} label="Base de Datos" isActive={pathname === '/settings/database'} />
+          </Link>
           <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" />
           <Link href="/settings/policies">
             <SidebarSubItem icon={FileText} label="Políticas y Reglamentos" isActive={pathname === '/settings/policies'} />
