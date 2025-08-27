@@ -20,7 +20,6 @@ import {
   Home,
   ArrowRightLeft,
   Landmark,
-  Contact,
   Users,
   Calculator,
   FileDown,
@@ -28,6 +27,15 @@ import {
   HeartHandshake,
   Briefcase,
   Megaphone,
+  LayoutGrid,
+  Shield,
+  Fingerprint,
+  Smartphone,
+  Tags,
+  Wrench,
+  Contact,
+  Truck,
+  ShoppingCart,
 } from "lucide-react";
 import { SidebarItem, SidebarSubItem } from "./sidebar-item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -36,6 +44,25 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 flex-col border-r bg-card p-4 md:flex">
       <div className="flex-1 space-y-2">
+        <SidebarItem icon={LayoutGrid} label="Dashboard" />
+        <SidebarItem icon={Shield} label="Seguridad">
+          <SidebarSubItem icon={Users} label="Usuarios" />
+          <SidebarSubItem icon={Fingerprint} label="Roles y Permisos" />
+        </SidebarItem>
+        <SidebarItem icon={Smartphone} label="Catálogos">
+          <SidebarSubItem icon={Box} label="Productos" />
+          <SidebarSubItem icon={Tags} label="Marcas y Modelos" />
+          <SidebarSubItem icon={Wrench} label="Herramientas" />
+        </SidebarItem>
+        <SidebarItem icon={Contact} label="Contactos">
+          <SidebarSubItem icon={Users} label="Clientes" />
+          <SidebarSubItem icon={Truck} label="Proveedores" />
+        </SidebarItem>
+        <SidebarItem icon={Wrench} label="Operaciones">
+          <SidebarSubItem icon={Briefcase} label="Ventas y Presupuestos" />
+          <SidebarSubItem icon={ShoppingCart} label="Compras" />
+          <SidebarSubItem icon={Wrench} label="Reparaciones" />
+        </SidebarItem>
         <SidebarItem icon={Warehouse} label="Inventario">
           <SidebarSubItem icon={Box} label="Inventario General" />
           <SidebarSubItem icon={Home} label="Gestión de Almacén" />
