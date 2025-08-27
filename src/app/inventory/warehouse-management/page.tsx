@@ -5,14 +5,15 @@ import { useState } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2, ChevronDown, Eye } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { VisualInventory } from '@/components/inventory/visual-inventory';
+import { AddWarehouseForm } from '@/components/inventory/add-warehouse-form';
+import { AddSectionForm } from '@/components/inventory/add-section-form';
+import { AddCoordinateForm } from '@/components/inventory/add-coordinate-form';
 
 const warehouseData = [
     {
@@ -37,6 +38,22 @@ const warehouseData = [
 
 export default function WarehouseManagementPage() {
     const [showVisualInventory, setShowVisualInventory] = useState(false);
+    const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
+    const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
+    const [isCoordinateModalOpen, setIsCoordinateModalOpen] = useState(false);
+    const [selectedWarehouse, setSelectedWarehouse] = useState('');
+    const [selectedSection, setSelectedSection] = useState('');
+
+    const handleOpenSectionModal = (warehouseName: string) => {
+        setSelectedWarehouse(warehouseName);
+        setIsSectionModalOpen(true);
+    };
+
+    const handleOpenCoordinateModal = (warehouseName: string, sectionName: string) => {
+        setSelectedWarehouse(warehouseName);
+        setSelectedSection(sectionName);
+        setIsCoordinateModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -54,7 +71,7 @@ export default function WarehouseManagementPage() {
                                     <Eye className="mr-2 h-4 w-4" />
                                     {showVisualInventory ? 'Ocultar' : 'Visualizar'} Inventario
                                 </Button>
-                                <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                                <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={() => setIsWarehouseModalOpen(true)}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Agregar Almacén
                                 </Button>
@@ -73,7 +90,7 @@ export default function WarehouseManagementPage() {
                                                     <CardTitle>{warehouse.name}</CardTitle>
                                                     <Badge variant="secondary">{warehouse.sectionsCount} secciones</Badge>
                                                 </div>
-                                                <Button variant="outline" size="sm">
+                                                <Button variant="outline" size="sm" onClick={() => handleOpenSectionModal(warehouse.name)}>
                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                     Agregar Sección
                                                 </Button>
@@ -93,7 +110,7 @@ export default function WarehouseManagementPage() {
                                                             </AccordionTrigger>
                                                             <div className="flex items-center gap-2 text-sm font-normal ml-4">
                                                                 <span>{section.coordinatesCount} Coordenadas</span>
-                                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => e.stopPropagation()}>
+                                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); /* Lógica para editar sección */ }}>
                                                                     <Edit className="h-4 w-4" />
                                                                 </Button>
                                                             </div>
@@ -103,7 +120,7 @@ export default function WarehouseManagementPage() {
                                                                 No hay coordenadas en esta sección.
                                                             </div>
                                                             <div className="flex justify-end">
-                                                                <Button variant="outline" size="sm">
+                                                                <Button variant="outline" size="sm" onClick={() => handleOpenCoordinateModal(warehouse.name, section.name)}>
                                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                                     Agregar Coordenada
                                                                 </Button>
@@ -131,6 +148,9 @@ export default function WarehouseManagementPage() {
                     </main>
                 </div>
             </div>
+            <AddWarehouseForm isOpen={isWarehouseModalOpen} onOpenChange={setIsWarehouseModalOpen} />
+            <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouseName={selectedWarehouse} />
+            <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} warehouseName={selectedWarehouse} sectionName={selectedSection} />
         </SidebarProvider>
     );
 }

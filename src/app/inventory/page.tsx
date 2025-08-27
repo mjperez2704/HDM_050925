@@ -1,6 +1,8 @@
+
 "use client";
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,6 +15,7 @@ import { Filter, Upload, MoreHorizontal, PlusCircle } from 'lucide-react';
 import { StockDetailsModal } from '@/components/inventory/stock-details-modal';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { cn } from '@/lib/utils';
 
 const inventoryData = [
     {
@@ -84,6 +87,7 @@ const inventoryData = [
 type InventoryItem = typeof inventoryData[0];
 
 export default function InventoryPage() {
+    const router = useRouter();
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<InventoryItem | null>(null);
 
@@ -92,6 +96,10 @@ export default function InventoryPage() {
             setSelectedItem(item);
             setIsDetailsModalOpen(true);
         }
+    };
+    
+    const handleAddMovement = () => {
+        router.push('/inventory/adjustments');
     };
 
     return (
@@ -123,7 +131,7 @@ export default function InventoryPage() {
                                             <Upload className="mr-2 h-4 w-4" />
                                             Exportar
                                         </Button>
-                                        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                                        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={handleAddMovement}>
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Agregar Movimiento
                                         </Button>
@@ -169,8 +177,8 @@ export default function InventoryPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
-                                                            <DropdownMenuItem>Ajustar Existencia</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenDetails(item)}>Ver Detalles</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={handleAddMovement}>Ajustar Existencia</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>
@@ -195,8 +203,4 @@ export default function InventoryPage() {
             )}
         </SidebarProvider>
     );
-}
-
-function cn(...inputs: any[]) {
-    return inputs.filter(Boolean).join(' ');
 }
