@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Upload, Download } from 'lucide-react';
 
 export default function InventoryAdjustmentsPage() {
     return (
@@ -139,13 +140,29 @@ export default function InventoryAdjustmentsPage() {
                             </Card>
                         </TabsContent>
                         <TabsContent value="bulk-upload">
-                             <Card className="mt-6">
+                            <Card className="mt-6">
                                 <CardHeader>
-                                    <CardTitle>Carga Masiva (Inventario Real)</CardTitle>
-                                    <CardDescription>Sube un archivo para actualizar el inventario físico de forma masiva.</CardDescription>
+                                    <CardTitle>Carga Masiva</CardTitle>
+                                    <CardDescription>Sube un archivo CSV con el conteo de tu inventario real para ajustar el stock masivamente.</CardDescription>
                                 </CardHeader>
-                                <CardContent>
-                                    <p>Próximamente disponible.</p>
+                                <CardContent className="space-y-6">
+                                    <div className="flex items-center justify-center w-full">
+                                        <label htmlFor="dropzone-file" className="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed rounded-lg cursor-pointer bg-card hover:bg-muted">
+                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                <Upload className="w-8 h-8 mb-4 text-muted-foreground" />
+                                                <p className="mb-2 text-sm text-muted-foreground"><span className="font-semibold">Haz clic para cargar</span> o arrastra y suelta</p>
+                                                <p className="text-xs text-muted-foreground">CSV (MAX. 5MB)</p>
+                                            </div>
+                                            <input id="dropzone-file" type="file" className="hidden" />
+                                        </label>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <Button variant="link" className="p-0 h-auto text-muted-foreground">
+                                            <Download className="mr-2 h-4 w-4" />
+                                            Descargar Layout de Ejemplo
+                                        </Button>
+                                        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Procesar Archivo</Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         </TabsContent>
