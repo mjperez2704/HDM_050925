@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -17,50 +18,43 @@ const productsData = [
         sku: 'PAR-IP15-PAN',
         name: 'Pantalla iPhone 15',
         unit: 'PZA',
-        listPrice: '$150.00',
-        avgCost: '$100.0000',
+        coordinate: 'A1-001',
     },
     {
         sku: 'ACC-CAB-USBC',
         name: 'Cable USB-C 1m',
         unit: 'PZA',
-        listPrice: '$25.00',
-        avgCost: '$10.0000',
+        coordinate: 'LOTE-B1-001',
     },
     {
         sku: 'EQU-SAM-S24',
         name: 'Samsung Galaxy S24',
         unit: 'PZA',
-        listPrice: '$1200.00',
-        avgCost: '$950.0000',
+        coordinate: 'C1-001',
     },
     {
         sku: 'HER-DES-01',
         name: 'Kit Desarmadores Precisión',
         unit: 'KIT',
-        listPrice: '$40.00',
-        avgCost: '$25.0000',
+        coordinate: 'N/A',
     },
     {
         sku: 'SRV-DIAG-01',
         name: 'Servicio de Diagnóstico',
         unit: 'SRV',
-        listPrice: '$20.00',
-        avgCost: '$0.0000',
+        coordinate: 'N/A',
     },
     {
         sku: 'PAR-SAM-S22-BAT',
         name: 'Batería Samsung S22',
         unit: 'PZA',
-        listPrice: '$80.00',
-        avgCost: '$40.0000',
+        coordinate: 'N/A',
     },
     {
         sku: 'ACC-CARG-30W',
         name: 'Cargador 30W',
         unit: 'PZA',
-        listPrice: '$35.00',
-        avgCost: '$15.0000',
+        coordinate: 'N/A',
     },
 ];
 
@@ -107,8 +101,7 @@ export default function ProductsPage() {
                                             <TableHead>SKU</TableHead>
                                             <TableHead>Nombre</TableHead>
                                             <TableHead>Unidad</TableHead>
-                                            <TableHead>Precio de Lista</TableHead>
-                                            <TableHead>Costo Promedio</TableHead>
+                                            <TableHead>Coordenada</TableHead>
                                             <TableHead><span className="sr-only">Actions</span></TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -118,8 +111,7 @@ export default function ProductsPage() {
                                                 <TableCell className="font-medium text-destructive underline">{product.sku}</TableCell>
                                                 <TableCell>{product.name}</TableCell>
                                                 <TableCell>{product.unit}</TableCell>
-                                                <TableCell>{product.listPrice}</TableCell>
-                                                <TableCell>{product.avgCost}</TableCell>
+                                                <TableCell>{product.coordinate}</TableCell>
                                                 <TableCell>
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
