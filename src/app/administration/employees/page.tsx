@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { AddEmployeeForm } from '@/components/administration/add-employee-form';
 
 const employeesData = [
     {
@@ -31,6 +32,7 @@ const employeesData = [
 ];
 
 export default function EmployeesPage() {
+    const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
 
     return (
         <SidebarProvider>
@@ -46,7 +48,10 @@ export default function EmployeesPage() {
                                         <CardTitle>Empleados</CardTitle>
                                         <CardDescription>Administra los empleados y sus roles en el sistema.</CardDescription>
                                     </div>
-                                    <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+                                    <Button 
+                                        className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                        onClick={() => setIsAddEmployeeModalOpen(true)}
+                                    >
                                         <PlusCircle className="mr-2 h-4 w-4" />
                                         Agregar Empleado
                                     </Button>
@@ -92,6 +97,7 @@ export default function EmployeesPage() {
                     </main>
                 </div>
             </div>
+            <AddEmployeeForm isOpen={isAddEmployeeModalOpen} onOpenChange={setIsAddEmployeeModalOpen} />
         </SidebarProvider>
     );
 }
