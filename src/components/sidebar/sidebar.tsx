@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from 'next/navigation';
 import {
   LineChart,
@@ -49,13 +50,21 @@ export function Sidebar() {
 
   return (
     <aside className="hidden w-64 flex-col border-r bg-card p-4 md:flex">
-      <div className="flex items-center gap-2 mb-4">
-        <Phone className="h-8 w-8 text-primary" />
-        <h1 className="text-xl font-bold">Hospital del Móvil</h1>
+      <div className="mb-4">
+        <Link href="/dashboard">
+            <Image 
+                src="https://hospitaldelmovil.mega-shop-test.shop/shared/logo.png" 
+                alt="Logo de la empresa"
+                width={265}
+                height={100}
+                data-ai-hint="logo"
+                className="w-full h-auto"
+            />
+        </Link>
       </div>
       <div className="flex-1 space-y-2">
-        <Link href="/">
-          <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/'} />
+        <Link href="/dashboard">
+          <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/dashboard'} />
         </Link>
         <SidebarItem icon={Shield} label="Seguridad">
           <Link href="/security/users">
