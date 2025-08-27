@@ -78,7 +78,9 @@ export function Sidebar() {
           <Link href="/contacts/clients">
             <SidebarSubItem icon={Users} label="Clientes" isActive={pathname === '/contacts/clients'} />
           </Link>
-          <SidebarSubItem icon={Truck} label="Proveedores" />
+          <Link href="/contacts/suppliers">
+            <SidebarSubItem icon={Truck} label="Proveedores" isActive={pathname === '/contacts/suppliers'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Wrench} label="Operaciones">
           <SidebarSubItem icon={Briefcase} label="Ventas y Presupuestos" />
