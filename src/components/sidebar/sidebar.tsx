@@ -7,7 +7,6 @@ import {
   MessagesSquare,
   Book,
   MessageSquare,
-  MessageCircle,
   Settings,
   Palette,
   Building2,
@@ -16,6 +15,19 @@ import {
   Hammer,
   Clipboard,
   BookUser,
+  Warehouse,
+  Box,
+  Home,
+  ArrowRightLeft,
+  Landmark,
+  Contact,
+  Users,
+  Calculator,
+  FileDown,
+  FileUp,
+  HeartHandshake,
+  Briefcase,
+  Megaphone,
 } from "lucide-react";
 import { SidebarItem, SidebarSubItem } from "./sidebar-item";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -24,6 +36,25 @@ export function Sidebar() {
   return (
     <aside className="hidden w-64 flex-col border-r bg-card p-4 md:flex">
       <div className="flex-1 space-y-2">
+        <SidebarItem icon={Warehouse} label="Inventario">
+          <SidebarSubItem icon={Box} label="Inventario General" />
+          <SidebarSubItem icon={Home} label="Gestión de Almacén" />
+          <SidebarSubItem icon={ArrowRightLeft} label="Traslados" />
+          <SidebarSubItem icon={FileCog} label="Ajustes" />
+        </SidebarItem>
+        <SidebarItem icon={Landmark} label="Administración">
+            <SidebarSubItem icon={Contact} label="Empleados" />
+            <SidebarSubItem icon={Users} label="Vendedores" />
+            <SidebarSubItem icon={FileText} label="Facturación" />
+            <SidebarSubItem icon={Calculator} label="Gastos" />
+            <SidebarSubItem icon={FileDown} label="Cuentas por Cobrar" />
+            <SidebarSubItem icon={FileUp} label="Cuentas por Pagar" />
+        </SidebarItem>
+        <SidebarItem icon={HeartHandshake} label="CRM">
+            <SidebarSubItem icon={Briefcase} label="Oportunidades" />
+            <SidebarSubItem icon={Megaphone} label="Marketing" />
+            <SidebarSubItem icon={MessageSquare} label="Soporte y Quejas" />
+        </SidebarItem>
         <SidebarItem icon={LineChart} label="Reportes">
           <SidebarSubItem icon={FileText} label="Predeterminados" />
           <SidebarSubItem icon={FileCog} label="Personalizados" />
@@ -31,7 +62,7 @@ export function Sidebar() {
         <SidebarItem icon={MessagesSquare} label="Comunicación">
           <SidebarSubItem icon={Book} label="Bitácora" />
           <SidebarSubItem icon={MessageSquare} label="Solicitudes" />
-          <SidebarSubItem icon={MessageCircle} label="Chat Interno" />
+          <SidebarSubItem icon={MessageSquare} label="Chat Interno" />
         </SidebarItem>
         <SidebarItem icon={Settings} label="Configuraciones">
           <SidebarSubItem icon={Palette} label="Apariencia" />
