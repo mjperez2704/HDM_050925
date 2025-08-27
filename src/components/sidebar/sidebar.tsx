@@ -92,7 +92,9 @@ export function CustomSidebar() {
         <SidebarItem icon={Wrench} label="Operaciones">
           <SidebarSubItem icon={Briefcase} label="Ventas y Presupuestos" />
           <SidebarSubItem icon={ShoppingCart} label="Compras" />
-          <SidebarSubItem icon={Wrench} label="Reparaciones" />
+          <Link href="/operations/repairs">
+            <SidebarSubItem icon={Wrench} label="Reparaciones" isActive={pathname === '/operations/repairs'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Warehouse} label="Inventario">
           <Link href="/inventory">
