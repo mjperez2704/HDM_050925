@@ -49,8 +49,8 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-64 flex-col border-r bg-card p-4 md:flex">
-      <div className="mb-4">
+    <aside className="fixed inset-y-0 left-0 z-10 hidden w-60 flex-col border-r bg-card sm:flex">
+      <div className="p-4">
         <Link href="/dashboard">
             <Image 
                 src="https://hospitaldelmovil.mega-shop-test.shop/shared/logo.png" 
@@ -62,7 +62,7 @@ export function Sidebar() {
             />
         </Link>
       </div>
-      <div className="flex-1 space-y-2">
+      <nav className="flex-1 space-y-2 overflow-auto px-4">
         <Link href="/dashboard">
           <SidebarItem icon={LayoutGrid} label="Dashboard" isActive={pathname === '/dashboard'} />
         </Link>
@@ -162,8 +162,8 @@ export function Sidebar() {
             <SidebarSubItem icon={BookUser} label="Manuales" isActive={pathname === '/settings/manuals'}/>
           </Link>
         </SidebarItem>
-      </div>
-      <div className="mt-auto">
+      </nav>
+      <div className="mt-auto p-4">
         <div className="flex items-center p-2 rounded-md">
             <Avatar className="h-9 w-9 mr-3">
                 <AvatarFallback>N</AvatarFallback>
