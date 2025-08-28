@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 
 type AddLogEntryFormProps = {
   isOpen: boolean;
@@ -21,7 +22,7 @@ type AddLogEntryFormProps = {
 export function AddLogEntryForm({ isOpen, onOpenChange }: AddLogEntryFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Agregar Registro a Bitácora</DialogTitle>
           <DialogDescription>
@@ -29,31 +30,72 @@ export function AddLogEntryForm({ isOpen, onOpenChange }: AddLogEntryFormProps) 
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="log-user">Usuario</Label>
+              <Select>
+                  <SelectTrigger id="log-user">
+                      <SelectValue placeholder="Selecciona un usuario" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="tecnico1">Técnico 1</SelectItem>
+                  </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="log-action">Acción</Label>
+              <Select>
+                  <SelectTrigger id="log-action">
+                      <SelectValue placeholder="Selecciona una acción" />
+                  </SelectTrigger>
+                  <SelectContent>
+                      <SelectItem value="create">Creación</SelectItem>
+                      <SelectItem value="update">Actualización</SelectItem>
+                      <SelectItem value="delete">Eliminación</SelectItem>
+                      <SelectItem value="info">Informativo</SelectItem>
+                  </SelectContent>
+              </Select>
+            </div>
+          </div>
           <div className="space-y-2">
-            <Label htmlFor="log-user">Usuario</Label>
+            <Label htmlFor="log-module">Módulo Afectado</Label>
             <Select>
-                <SelectTrigger id="log-user">
-                    <SelectValue placeholder="Selecciona un usuario" />
+                <SelectTrigger id="log-module">
+                    <SelectValue placeholder="Selecciona un módulo" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="admin">Admin</SelectItem>
-                    <SelectItem value="tecnico1">Técnico 1</SelectItem>
+                    <SelectItem value="clientes">Clientes</SelectItem>
+                    <SelectItem value="proveedores">Proveedores</SelectItem>
+                    <SelectItem value="productos">Productos</SelectItem>
+                    <SelectItem value="marcas_modelos">Marcas y Modelos</SelectItem>
+                    <SelectItem value="herramientas">Herramientas</SelectItem>
+                    <SelectItem value="usuarios">Usuarios</SelectItem>
+                    <SelectItem value="roles">Roles</SelectItem>
+                    <SelectItem value="ventas">Ventas</SelectItem>
+                    <SelectItem value="reparaciones">Reparaciones</SelectItem>
                 </SelectContent>
             </Select>
           </div>
-           <div className="space-y-2">
-            <Label htmlFor="log-action">Acción</Label>
-            <Select>
-                <SelectTrigger id="log-action">
-                    <SelectValue placeholder="Selecciona una acción" />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="identifier-type">Tipo de Identificador</Label>
+              <Select>
+                <SelectTrigger id="identifier-type">
+                  <SelectValue placeholder="Seleccione..." />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="create">Creación</SelectItem>
-                    <SelectItem value="update">Actualización</SelectItem>
-                    <SelectItem value="delete">Eliminación</SelectItem>
-                    <SelectItem value="info">Informativo</SelectItem>
+                  <SelectItem value="id">ID</SelectItem>
+                  <SelectItem value="sku">SKU</SelectItem>
+                  <SelectItem value="folio">Folio</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
                 </SelectContent>
-            </Select>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="identifier-value">Valor</Label>
+              <Input id="identifier-value" placeholder="Valor del identificador" />
+            </div>
           </div>
           <div className="space-y-2">
             <Label htmlFor="log-description">Descripción</Label>
