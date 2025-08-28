@@ -53,6 +53,7 @@ export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderF
     { id: 2, sku: 'acc-cab-usbc', quantity: 10, cost: 80 },
   ]);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [purpose, setPurpose] = useState('');
 
   const addProductLine = () => {
     setProductLines(prev => [...prev, { id: Date.now(), sku: '', quantity: 1, cost: 0 }]);
@@ -87,7 +88,7 @@ export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderF
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-end">
                   <div className="space-y-2">
                       <Label htmlFor="provider">Proveedor</Label>
                       <Select>
@@ -102,7 +103,7 @@ export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderF
                   </div>
                    <div className="space-y-2">
                       <Label htmlFor="purpose">Finalidad (USO)</Label>
-                      <Select>
+                      <Select onValueChange={setPurpose}>
                           <SelectTrigger id="purpose">
                           <SelectValue placeholder="Seleccione una finalidad" />
                           </SelectTrigger>
@@ -113,23 +114,12 @@ export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderF
                           </SelectContent>
                       </Select>
                   </div>
-                  <div className="space-y-2">
-                      <Label htmlFor="emission-date">Fecha de Emisión</Label>
-                      <Popover>
-                          <PopoverTrigger asChild>
-                              <Button
-                              variant={"outline"}
-                              className={cn("w-full justify-start text-left font-normal", !Date && "text-muted-foreground")}
-                              >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {format(new Date(), "PPP")}
-                              </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0">
-                              <Calendar mode="single" initialFocus />
-                          </PopoverContent>
-                      </Popover>
-                  </div>
+                  {purpose === 'pedido' && (
+                    <div className="space-y-2">
+                        <Label htmlFor="request-folio">Folio de Solicitud</Label>
+                        <Input id="request-folio" placeholder="Ej. OS-2024-001" />
+                    </div>
+                  )}
                   <div className="space-y-2">
                       <Label htmlFor="delivery-date">Fecha de Entrega Estimada</Label>
                       <Popover>
