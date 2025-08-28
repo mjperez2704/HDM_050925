@@ -123,7 +123,9 @@ export function CustomSidebar() {
             <Link href="/administration/vendedores">
               <SidebarSubItem icon={Users} label="Vendedores" isActive={pathname === '/administration/vendedores'} />
             </Link>
-            <SidebarSubItem icon={FileText} label="Facturación" />
+            <Link href="/administration/billing">
+              <SidebarSubItem icon={FileText} label="Facturación" isActive={pathname === '/administration/billing'} />
+            </Link>
             <Link href="/administration/expenses">
              <SidebarSubItem icon={Calculator} label="Gastos" isActive={pathname === '/administration/expenses'} />
             </Link>
@@ -146,15 +148,23 @@ export function CustomSidebar() {
             </Link>
         </SidebarItem>
         <SidebarItem icon={LineChart} label="Reportes">
-          <SidebarSubItem icon={FileText} label="Predeterminados" />
-          <SidebarSubItem icon={FileCog} label="Personalizados" />
+          <Link href="/reports/predefined">
+            <SidebarSubItem icon={FileText} label="Predeterminados" isActive={pathname === '/reports/predefined'} />
+          </Link>
+          <Link href="/reports/custom">
+            <SidebarSubItem icon={FileCog} label="Personalizados" isActive={pathname === '/reports/custom'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={MessagesSquare} label="Comunicación">
           <Link href="/communication/log">
             <SidebarSubItem icon={Book} label="Bitácora" isActive={pathname === '/communication/log'} />
           </Link>
-          <SidebarSubItem icon={MessageSquare} label="Solicitudes" />
-          <SidebarSubItem icon={MessageSquare} label="Chat Interno" />
+          <Link href="/communication/requests">
+            <SidebarSubItem icon={MessageSquare} label="Solicitudes" isActive={pathname === '/communication/requests'} />
+          </Link>
+          <Link href="/communication/internal-chat">
+            <SidebarSubItem icon={MessageSquare} label="Chat Interno" isActive={pathname === '/communication/internal-chat'} />
+          </Link>
         </SidebarItem>
         <SidebarItem icon={Settings} label="Configuraciones">
           <Link href="/settings/appearance">
@@ -166,7 +176,9 @@ export function CustomSidebar() {
           <Link href="/settings/database">
             <SidebarSubItem icon={Database} label="Base de Datos" isActive={pathname === '/settings/database'} />
           </Link>
-          <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" />
+          <Link href="/settings/privacy-policy">
+            <SidebarSubItem icon={FileLock} label="Aviso de Privacidad" isActive={pathname === '/settings/privacy-policy'} />
+          </Link>
           <Link href="/settings/policies">
             <SidebarSubItem icon={FileText} label="Políticas y Reglamentos" isActive={pathname === '/settings/policies'} />
           </Link>
