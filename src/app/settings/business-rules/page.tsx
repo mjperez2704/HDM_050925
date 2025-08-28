@@ -133,7 +133,7 @@ const InventoryRules = () => (
                 <Label htmlFor="max-skus" className="font-semibold">Máximo de SKUs distintos por Coordenada</Label>
                 <p className="text-sm text-muted-foreground">Define la cantidad máxima de tipos de producto (SKUs) distintos por coordenada.</p>
               </div>
-              <Input id="max-skus" type="number" defaultValue="2" className="w-20" />
+              <Input id="max-skus" type="number" defaultValue="2" min="1" className="w-20" />
             </div>
           </AccordionContent>
         </AccordionItem>
