@@ -28,28 +28,6 @@ import { getProducts, deleteProduct } from '@/actions/products-actions';
 import type { Product } from '@/lib/types/product';
 import { useToast } from "@/hooks/use-toast";
 
-const attributesData = {
-    'PAR-IP15-PAN': {
-        atributo_1: 'Calidad: Original',
-        atributo_2: 'Resolución: 2556 x 1179',
-        atributo_3: 'Tecnología: Super Retina XDR',
-        atributo_4: 'Color: Negro',
-        atributo_5: 'Compatibilidad: A2846, A2650',
-    },
-    'ACC-CAB-USBC': {
-        atributo_1: 'Longitud: 1 metro',
-        atributo_2: 'Conector: USB-C a USB-C',
-        atributo_3: 'Velocidad: USB 3.1 Gen 2',
-        atributo_4: 'Color: Blanco',
-    },
-    'EQU-SAM-S24': {
-        atributo_1: 'Almacenamiento: 256GB',
-        atributo_2: 'RAM: 8GB',
-        atributo_3: 'Color: Phantom Black',
-        atributo_4: 'Procesador: Snapdragon 8 Gen 3',
-    },
-};
-
 type ProductWithAttributes = Product & { attributes?: Record<string, string> };
 
 export default function ProductsPage() {
@@ -70,14 +48,22 @@ export default function ProductsPage() {
     }, []);
 
     const handleOpenEditModal = (product: Product) => {
-        const productAttributes = attributesData[product.sku as keyof typeof attributesData];
-        setSelectedProduct({ ...product, attributes: productAttributes });
+        const attributes = Object.fromEntries(
+            Object.entries(product)
+                .filter(([key, value]) => key.startsWith('atributo') && value)
+                .map(([key, value]) => [key, String(value)])
+        );
+        setSelectedProduct({ ...product, attributes });
         setIsEditProductModalOpen(true);
     };
 
     const handleOpenAttributesModal = (product: Product) => {
-        const productAttributes = attributesData[product.sku as keyof typeof attributesData];
-        setSelectedProduct({ ...product, attributes: productAttributes });
+        const attributes = Object.fromEntries(
+            Object.entries(product)
+                .filter(([key, value]) => key.startsWith('atributo') && value)
+                .map(([key, value]) => [key, String(value)])
+        );
+        setSelectedProduct({ ...product, attributes });
         setIsAttributesModalOpen(true);
     };
 
@@ -166,7 +152,7 @@ export default function ProductsPage() {
                                                 </TableCell>
                                                 <TableCell>{product.nombre}</TableCell>
                                                 <TableCell>{product.unidad}</TableCell>
-                                                <TableCell>${product.precio_lista.toFixed(2)}</TableCell>
+                                                <TableCell>${product.precioLista.toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     <AlertDialog>
                                                         <DropdownMenu>
