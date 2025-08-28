@@ -12,6 +12,7 @@ import { Filter, Upload, PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddProductForm } from '@/components/products/add-product-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { EditProductForm } from '@/components/products/edit-product-form';
 
 const productsData = [
     {
@@ -58,8 +59,17 @@ const productsData = [
     },
 ];
 
+type Product = typeof productsData[0];
+
 export default function ProductsPage() {
     const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
+    const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+
+    const handleOpenEditModal = (product: Product) => {
+        setSelectedProduct(product);
+        setIsEditProductModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -121,7 +131,7 @@ export default function ProductsPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(product)}>Editar</DropdownMenuItem>
                                                             <DropdownMenuItem>Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -139,6 +149,7 @@ export default function ProductsPage() {
                 </div>
             </div>
             <AddProductForm isOpen={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen} />
+            <EditProductForm isOpen={isEditProductModalOpen} onOpenChange={setIsEditProductModalOpen} product={selectedProduct} />
         </SidebarProvider>
     );
 }

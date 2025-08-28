@@ -12,6 +12,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { AddEmployeeForm } from '@/components/administration/add-employee-form';
+import { EditEmployeeForm } from '@/components/administration/edit-employee-form';
 
 const employeesData = [
     {
@@ -31,8 +32,17 @@ const employeesData = [
     },
 ];
 
+type Employee = typeof employeesData[0];
+
 export default function EmployeesPage() {
     const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
+    const [isEditEmployeeModalOpen, setIsEditEmployeeModalOpen] = useState(false);
+    const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+
+    const handleOpenEditModal = (employee: Employee) => {
+        setSelectedEmployee(employee);
+        setIsEditEmployeeModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -83,7 +93,7 @@ export default function EmployeesPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(employee)}>Editar</DropdownMenuItem>
                                                             <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -98,6 +108,7 @@ export default function EmployeesPage() {
                 </div>
             </div>
             <AddEmployeeForm isOpen={isAddEmployeeModalOpen} onOpenChange={setIsAddEmployeeModalOpen} />
+            <EditEmployeeForm isOpen={isEditEmployeeModalOpen} onOpenChange={setIsEditEmployeeModalOpen} employee={selectedEmployee} />
         </SidebarProvider>
     );
 }

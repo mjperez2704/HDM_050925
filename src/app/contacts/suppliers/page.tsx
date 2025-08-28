@@ -12,6 +12,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddSupplierForm } from '@/components/contacts/add-supplier-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { EditSupplierForm } from '@/components/contacts/edit-supplier-form';
 
 const suppliersData = [
     {
@@ -28,8 +29,17 @@ const suppliersData = [
     },
 ];
 
+type Supplier = typeof suppliersData[0];
+
 export default function SuppliersPage() {
     const [isAddSupplierModalOpen, setIsAddSupplierModalOpen] = useState(false);
+    const [isEditSupplierModalOpen, setIsEditSupplierModalOpen] = useState(false);
+    const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
+
+    const handleOpenEditModal = (supplier: Supplier) => {
+        setSelectedSupplier(supplier);
+        setIsEditSupplierModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -82,7 +92,7 @@ export default function SuppliersPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(supplier)}>Editar</DropdownMenuItem>
                                                             <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -97,6 +107,7 @@ export default function SuppliersPage() {
                 </div>
             </div>
             <AddSupplierForm isOpen={isAddSupplierModalOpen} onOpenChange={setIsAddSupplierModalOpen} />
+            <EditSupplierForm isOpen={isEditSupplierModalOpen} onOpenChange={setIsEditSupplierModalOpen} supplier={selectedSupplier} />
         </SidebarProvider>
     );
 }

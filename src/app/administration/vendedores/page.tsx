@@ -12,6 +12,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddVendedorForm } from '@/components/administration/add-vendedor-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { EditVendedorForm } from '@/components/administration/edit-vendedor-form';
 
 const vendedoresData = [
     {
@@ -22,8 +23,17 @@ const vendedoresData = [
     },
 ];
 
+type Vendedor = typeof vendedoresData[0];
+
 export default function VendedoresPage() {
     const [isAddVendedorModalOpen, setIsAddVendedorModalOpen] = useState(false);
+    const [isEditVendedorModalOpen, setIsEditVendedorModalOpen] = useState(false);
+    const [selectedVendedor, setSelectedVendedor] = useState<Vendedor | null>(null);
+
+    const handleOpenEditModal = (vendedor: Vendedor) => {
+        setSelectedVendedor(vendedor);
+        setIsEditVendedorModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -76,7 +86,7 @@ export default function VendedoresPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(vendedor)}>Editar</DropdownMenuItem>
                                                             <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -91,6 +101,7 @@ export default function VendedoresPage() {
                 </div>
             </div>
             <AddVendedorForm isOpen={isAddVendedorModalOpen} onOpenChange={setIsAddVendedorModalOpen} />
+            <EditVendedorForm isOpen={isEditVendedorModalOpen} onOpenChange={setIsEditVendedorModalOpen} vendedor={selectedVendedor} />
         </SidebarProvider>
     );
 }

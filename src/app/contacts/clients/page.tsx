@@ -12,6 +12,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddClientForm } from '@/components/contacts/add-client-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { EditClientForm } from '@/components/contacts/edit-client-form';
 
 const clientsData = [
     {
@@ -30,8 +31,17 @@ const clientsData = [
     },
 ];
 
+type Client = typeof clientsData[0];
+
 export default function ClientsPage() {
     const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
+    const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
+    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+
+    const handleOpenEditModal = (client: Client) => {
+        setSelectedClient(client);
+        setIsEditClientModalOpen(true);
+    };
 
     return (
         <SidebarProvider>
@@ -86,7 +96,7 @@ export default function ClientsPage() {
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(client)}>Editar</DropdownMenuItem>
                                                             <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -101,6 +111,7 @@ export default function ClientsPage() {
                 </div>
             </div>
             <AddClientForm isOpen={isAddClientModalOpen} onOpenChange={setIsAddClientModalOpen} />
+            <EditClientForm isOpen={isEditClientModalOpen} onOpenChange={setIsEditClientModalOpen} client={selectedClient} />
         </SidebarProvider>
     );
 }
