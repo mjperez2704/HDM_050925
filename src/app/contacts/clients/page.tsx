@@ -1,46 +1,58 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddClientForm } from '@/components/contacts/add-client-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { EditClientForm } from '@/components/contacts/edit-client-form';
-
-const clientsData = [
-    {
-        razonSocial: 'Carlos Sánchez López',
-        email: 'carlos.sanchez@email.com',
-        telefono: '5587654321',
-        rfc: 'SALC850315H00',
-        fechaRegistro: '27/8/2025',
-    },
-    {
-        razonSocial: 'Oficina Creativa SA de CV',
-        email: 'contacto@oficinacreativa.com',
-        telefono: '5512345678',
-        rfc: 'OCR120520XYZ',
-        fechaRegistro: '27/8/2025',
-    },
-];
-
-type Client = typeof clientsData[0];
+import { getClients, deleteClient } from '@/actions/clients-actions';
+import type { ClientWithId } from '@/lib/types/client';
+import { useToast } from "@/hooks/use-toast";
 
 export default function ClientsPage() {
+    const [clientsData, setClientsData] = useState<ClientWithId[]>([]);
     const [isAddClientModalOpen, setIsAddClientModalOpen] = useState(false);
     const [isEditClientModalOpen, setIsEditClientModalOpen] = useState(false);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [selectedClient, setSelectedClient] = useState<ClientWithId | null>(null);
+    const { toast } = useToast();
 
-    const handleOpenEditModal = (client: Client) => {
+    useEffect(() => {
+        const fetchClients = async () => {
+            const clients = await getClients();
+            setClientsData(clients as ClientWithId[]);
+        };
+        fetchClients();
+    }, []);
+
+    const handleOpenEditModal = (client: ClientWithId) => {
         setSelectedClient(client);
         setIsEditClientModalOpen(true);
+    };
+    
+    const handleDeleteClient = async (id: number) => {
+        const result = await deleteClient(id);
+        if (result.message.startsWith('Error')) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            // Refrescar la lista de clientes
+            const clients = await getClients();
+            setClientsData(clients as ClientWithId[]);
+        }
     };
 
     return (
@@ -80,12 +92,12 @@ export default function ClientsPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {clientsData.map((client) => (
-                                            <TableRow key={client.email}>
+                                            <TableRow key={client.id}>
                                                 <TableCell className="font-medium">{client.razonSocial}</TableCell>
                                                 <TableCell>{client.email}</TableCell>
                                                 <TableCell>{client.telefono}</TableCell>
                                                 <TableCell>{client.rfc}</TableCell>
-                                                <TableCell>{client.fechaRegistro}</TableCell>
+                                                <TableCell>{new Date(client.fechaRegistro).toLocaleDateString()}</TableCell>
                                                 <TableCell className="text-right">
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild>
@@ -97,7 +109,12 @@ export default function ClientsPage() {
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                             <DropdownMenuItem onClick={() => handleOpenEditModal(client)}>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                            <DropdownMenuItem 
+                                                                className="text-destructive"
+                                                                onClick={() => handleDeleteClient(client.id)}
+                                                            >
+                                                                Eliminar
+                                                            </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>

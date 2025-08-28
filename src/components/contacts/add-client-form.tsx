@@ -17,18 +17,24 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { createClient } from "@/actions/clients-actions";
+import { revalidatePath } from "next/cache";
+import { useRouter } from "next/navigation";
 
 type AddClientFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
 };
 
+const FormSchema = ClientSchema.omit({ id: true, fecha_registro: true });
+
 export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const form = useForm<Omit<Client, 'id' | 'fecha_registro'>>({
-    resolver: zodResolver(ClientSchema),
+    resolver: zodResolver(FormSchema),
     defaultValues: {
-      razon_social: "",
+      razonSocial: "",
       email: "",
       telefono: "",
       rfc: "",
@@ -36,14 +42,23 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
     }
   });
 
-  function onSubmit(data: Omit<Client, 'id' | 'fecha_registro'>) {
-    console.log("Datos del cliente válidos:", data);
-    toast({
-      title: "Cliente Creado",
-      description: "El nuevo cliente ha sido registrado exitosamente.",
-    });
-    onOpenChange(false);
-    form.reset();
+  async function onSubmit(data: Omit<Client, 'id' | 'fecha_registro'>) {
+    const result = await createClient(data);
+    if (result.message.startsWith('Error')) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: result.message,
+      });
+    } else {
+      toast({
+        title: "Cliente Creado",
+        description: "El nuevo cliente ha sido registrado exitosamente.",
+      });
+      onOpenChange(false);
+      form.reset();
+      router.refresh(); // O revalidatePath si es necesario
+    }
   }
 
   return (
@@ -60,7 +75,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
             <div className="grid gap-6 py-4">
               <FormField
                 control={form.control}
-                name="razon_social"
+                name="razonSocial"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nombre / Razón Social</FormLabel>
@@ -137,7 +152,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                <Button type="button" variant="ghost">
+                <Button type="button" variant="ghost" onClick={() => { form.reset(); onOpenChange(false); }}>
                   Cancelar
                 </Button>
               </DialogClose>
