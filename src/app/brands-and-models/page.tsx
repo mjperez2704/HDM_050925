@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -54,7 +55,7 @@ export default function BrandsAndModelsPage() {
                 </p>
               </div>
               <Button 
-                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 onClick={() => setIsAddBrandModalOpen(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />

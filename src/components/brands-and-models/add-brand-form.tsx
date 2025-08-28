@@ -1,3 +1,4 @@
+
 import {
   Dialog,
   DialogContent,
@@ -27,24 +28,23 @@ export function AddBrandForm({ isOpen, onOpenChange }: AddBrandFormProps) {
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="brand-name" className="col-span-4">
+          <div className="space-y-2">
+            <Label htmlFor="brand-name">
               Nombre de la Marca
             </Label>
             <Input
               id="brand-name"
               placeholder="Ej. Apple"
-              className="col-span-4 border-primary/50 focus:border-primary ring-offset-background focus-visible:ring-primary"
+              className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive"
             />
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="origin-country" className="col-span-4">
+          <div className="space-y-2">
+            <Label htmlFor="origin-country">
               País de Origen (Opcional)
             </Label>
             <Input
               id="origin-country"
               placeholder="Ej. USA"
-              className="col-span-4"
             />
           </div>
         </div>
@@ -54,7 +54,7 @@ export function AddBrandForm({ isOpen, onOpenChange }: AddBrandFormProps) {
               Cancelar
             </Button>
           </DialogClose>
-          <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">Crear Marca</Button>
+          <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Crear Marca</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -46,7 +46,7 @@ export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="role-name">Nombre del Rol</Label>
-                <Input id="role-name" placeholder="Ej. Gerente de Taller" className="border-primary/50 focus:border-primary ring-offset-background focus-visible:ring-primary" />
+                <Input id="role-name" placeholder="Ej. Gerente de Taller" className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive" />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="role-description">Descripción</Label>
@@ -86,5 +86,3 @@ export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
     </Dialog>
   );
 }
-
-    
