@@ -32,19 +32,21 @@ type EditCoordinateFormProps = {
 };
 
 export function EditCoordinateForm({ isOpen, onOpenChange, warehouseName, sectionName, coordinate }: EditCoordinateFormProps) {
-  const { register, handleSubmit, reset, setValue } = useForm({
+  const { register, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       name: coordinate?.name || '',
       visible: coordinate?.visible ?? true,
     }
   });
 
+  const isVisible = watch('visible');
+
   useEffect(() => {
-    if (coordinate) {
+    if (isOpen && coordinate) {
       setValue('name', coordinate.name);
       setValue('visible', coordinate.visible);
     }
-  }, [coordinate, setValue]);
+  }, [isOpen, coordinate, setValue]);
 
   const onSubmit = (data: any) => {
     console.log(data);
@@ -69,7 +71,7 @@ export function EditCoordinateForm({ isOpen, onOpenChange, warehouseName, sectio
             <div className="flex items-center space-x-2">
                 <Switch 
                     id="visible-switch"
-                    checked={!!watch('visible')}
+                    checked={isVisible}
                     onCheckedChange={(checked) => setValue('visible', checked)}
                 />
                 <Label htmlFor="visible-switch">Visible</Label>
@@ -88,13 +90,4 @@ export function EditCoordinateForm({ isOpen, onOpenChange, warehouseName, sectio
     </Dialog>
   );
 }
-
-// Helper hook to watch form values
-import { useFormContext, useWatch } from 'react-hook-form';
-
-function useWatch(name: string) {
-    const { control } = useFormContext();
-    return useWatch({ control, name });
-}
-
     
