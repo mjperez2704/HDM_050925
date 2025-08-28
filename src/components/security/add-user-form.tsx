@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type AddUserFormProps = {
   isOpen: boolean;
@@ -58,6 +59,28 @@ export function AddUserForm({ isOpen, onOpenChange }: AddUserFormProps) {
                     <SelectItem value="gerente">Gerente</SelectItem>
                 </SelectContent>
             </Select>
+          </div>
+          <div className="items-top flex space-x-2 pt-2">
+            <Checkbox id="change-password" />
+            <div className="grid gap-1.5 leading-none">
+                <Label
+                htmlFor="change-password"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                El usuario deberá cambiar la contraseña al iniciar sesión
+                </Label>
+            </div>
+          </div>
+          <div className="items-top flex space-x-2">
+            <Checkbox id="register-pin" />
+            <div className="grid gap-1.5 leading-none">
+                <Label
+                htmlFor="register-pin"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                El usuario deberá registrar PIN de confirmación al inicar sesión
+                </Label>
+            </div>
           </div>
         </div>
         <DialogFooter>
