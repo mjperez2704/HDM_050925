@@ -171,7 +171,9 @@ export function CustomSidebar() {
           <Link href="/settings/business-rules">
             <SidebarSubItem icon={Hammer} label="Reglas de Negocio" isActive={pathname === '/settings/business-rules'} />
           </Link>
-          <SidebarSubItem icon={Clipboard} label="Formatos" />
+          <Link href="/settings/formats">
+            <SidebarSubItem icon={Clipboard} label="Formatos" isActive={pathname === '/settings/formats'} />
+          </Link>
           <Link href="/settings/manuals">
             <SidebarSubItem icon={BookUser} label="Manuales" isActive={pathname === '/settings/manuals'}/>
           </Link>
