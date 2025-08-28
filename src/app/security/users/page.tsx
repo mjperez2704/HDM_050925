@@ -12,6 +12,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddUserForm } from '@/components/security/add-user-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { PinConfirmationModal } from '@/components/security/pin-confirmation-modal';
 
 const usersData = [
     {
@@ -42,6 +43,13 @@ const usersData = [
 
 export default function UsersPage() {
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+    const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+
+    const handlePinConfirm = (pin: string) => {
+        console.log("PIN Ingresado para cambiar PIN de usuario:", pin);
+        // Aquí iría la lógica de validación y cambio de PIN
+        setIsPinModalOpen(false);
+    };
 
     return (
         <SidebarProvider>
@@ -97,6 +105,9 @@ export default function UsersPage() {
                                                         <DropdownMenuContent align="end">
                                                             <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                             <DropdownMenuItem>Editar</DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => setIsPinModalOpen(true)}>
+                                                                Cambiar PIN de Usuario
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem>Desactivar</DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
@@ -111,6 +122,11 @@ export default function UsersPage() {
                 </div>
             </div>
             <AddUserForm isOpen={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen} />
+            <PinConfirmationModal
+                isOpen={isPinModalOpen}
+                onOpenChange={setIsPinModalOpen}
+                onConfirm={handlePinConfirm}
+            />
         </SidebarProvider>
     );
 }
