@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Edit, Trash2, ChevronDown, Eye, Search } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, ChevronDown, Eye, Search, EyeOff } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { VisualInventory } from '@/components/inventory/visual-inventory';
@@ -17,6 +17,13 @@ import { AddCoordinateForm } from '@/components/inventory/add-coordinate-form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AssignSkuForm } from '@/components/inventory/assign-sku-form';
+import { cn } from '@/lib/utils';
+
+type Coordinate = {
+    name: string;
+    skus: string[];
+    visible: boolean;
+};
 
 const warehouseData = [
     {
@@ -28,15 +35,15 @@ const warehouseData = [
               name: 'Anaquel A1 - Pantallas', 
               coordinatesCount: 2, 
               coordinates: [
-                { name: 'A1-001', skus: ['PAR-IP15-PAN'] },
-                { name: 'A1-002', skus: ['PAR-IP15-PAN'] },
+                { name: 'A1-001', skus: ['PAR-IP15-PAN'], visible: true },
+                { name: 'A1-002', skus: ['PAR-IP15-PAN'], visible: true },
               ] 
             },
             { 
               name: 'Anaquel A2 - Baterías', 
               coordinatesCount: 1, 
               coordinates: [
-                { name: 'A2-001', skus: [] }
+                { name: 'A2-001', skus: [], visible: false } // Esta coordenada está oculta
               ] 
             }
         ]
@@ -50,7 +57,7 @@ const warehouseData = [
               name: 'Cajón Técnico 1', 
               coordinatesCount: 1, 
               coordinates: [
-                { name: 'CT1-001', skus: ['HER-DES-01'] }
+                { name: 'CT1-001', skus: ['HER-DES-01'], visible: true }
               ] 
             }
         ]
@@ -66,9 +73,14 @@ export default function WarehouseManagementPage() {
     const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
     const [selectedWarehouse, setSelectedWarehouse] = useState('');
     const [selectedSection, setSelectedSection] = useState('');
-    const [selectedCoordinate, setSelectedCoordinate] = useState<{ name: string; skus: string[] } | null>(null);
+    const [selectedCoordinate, setSelectedCoordinate] = useState<Coordinate | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredData, setFilteredData] = useState(warehouseData);
+    
+    // Simulación de permisos de usuario. En una aplicación real, esto vendría del estado de autenticación.
+    const userPermissions = {
+        canViewHiddenCoordinates: true // Cambiar a `false` para ver el efecto
+    };
 
     const handleOpenSectionModal = (warehouseName: string) => {
         setSelectedWarehouse(warehouseName);
@@ -81,7 +93,7 @@ export default function WarehouseManagementPage() {
         setIsCoordinateModalOpen(true);
     };
 
-    const handleOpenAssignSkuModal = (warehouseName: string, sectionName: string, coordinate: { name: string; skus: string[] }) => {
+    const handleOpenAssignSkuModal = (warehouseName: string, sectionName: string, coordinate: Coordinate) => {
         setSelectedWarehouse(warehouseName);
         setSelectedSection(sectionName);
         setSelectedCoordinate(coordinate);
@@ -98,6 +110,7 @@ export default function WarehouseManagementPage() {
         const filtered = warehouseData.map(warehouse => {
             const filteredSections = warehouse.sections.map(section => {
                 const filteredCoordinates = section.coordinates.filter(coordinate => 
+                    (coordinate.visible || userPermissions.canViewHiddenCoordinates) &&
                     coordinate.skus.some(sku => sku.toLowerCase().includes(lowercasedFilter))
                 );
                 if (filteredCoordinates.length > 0) {
@@ -198,15 +211,19 @@ export default function WarehouseManagementPage() {
                                                         <AccordionContent className="pt-4">
                                                              {section.coordinates.length > 0 ? (
                                                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                                                                    {section.coordinates.map((coord, cIndex) => (
+                                                                    {section.coordinates.filter(c => c.visible || userPermissions.canViewHiddenCoordinates).map((coord, cIndex) => (
                                                                         <Button 
                                                                             key={cIndex}
                                                                             variant="outline" 
                                                                             size="sm"
-                                                                            className="h-auto"
+                                                                            className={cn(
+                                                                                "h-auto relative",
+                                                                                !coord.visible && "border-dashed border-yellow-500"
+                                                                            )}
                                                                             disabled={coord.skus.length >= 2}
                                                                             onClick={() => handleOpenAssignSkuModal(warehouse.name, section.name, coord)}
                                                                         >
+                                                                            {!coord.visible && <EyeOff className="absolute top-1 right-1 h-3 w-3 text-yellow-500" />}
                                                                             <div className="flex flex-col items-start w-full">
                                                                                 <span className="font-semibold">{coord.name}</span>
                                                                                 <span className="text-xs text-muted-foreground">
@@ -263,3 +280,5 @@ export default function WarehouseManagementPage() {
         </SidebarProvider>
     );
 }
+
+    

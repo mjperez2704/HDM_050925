@@ -20,14 +20,17 @@ type AddRoleFormProps = {
 };
 
 const permissions = [
-    { id: 'usuarios', label: 'Usuarios' },
-    { id: 'roles', label: 'Roles' },
-    { id: 'clientes', label: 'Clientes' },
-    { id: 'inventario', label: 'Inventario' },
-    { id: 'ventas', label: 'Ventas' }
+    { 
+        id: 'inventory', 
+        label: 'Inventario', 
+        actions: ['Ver', 'Crear', 'Editar', 'Eliminar', 'Ver Coordenadas Ocultas'] 
+    },
+    { id: 'usuarios', label: 'Usuarios', actions: ['Ver', 'Crear', 'Editar', 'Eliminar'] },
+    { id: 'roles', label: 'Roles', actions: ['Ver', 'Crear', 'Editar', 'Eliminar'] },
+    { id: 'clientes', label: 'Clientes', actions: ['Ver', 'Crear', 'Editar', 'Eliminar'] },
+    { id: 'ventas', label: 'Ventas', actions: ['Ver', 'Crear', 'Editar', 'Eliminar'] }
 ];
 
-const actions = ['Ver', 'Crear', 'Editar', 'Eliminar'];
 
 export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
   return (
@@ -39,7 +42,7 @@ export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
             Define un nuevo rol y los permisos que tendrá.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
+        <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
                 <Label htmlFor="role-name">Nombre del Rol</Label>
@@ -57,11 +60,11 @@ export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
                     <AccordionItem key={permission.id} value={permission.id}>
                         <AccordionTrigger className="font-semibold">{permission.label}</AccordionTrigger>
                         <AccordionContent>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 border rounded-md">
-                                {actions.map(action => (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 p-4 border rounded-md">
+                                {permission.actions.map(action => (
                                     <div key={`${permission.id}-${action}`} className="flex items-center space-x-2">
-                                        <Checkbox id={`${permission.id}-${action.toLowerCase()}`} />
-                                        <Label htmlFor={`${permission.id}-${action.toLowerCase()}`} className="font-normal">{action}</Label>
+                                        <Checkbox id={`${permission.id}-${action.toLowerCase().replace(/\s/g, '-')}`} />
+                                        <Label htmlFor={`${permission.id}-${action.toLowerCase().replace(/\s/g, '-')}`} className="font-normal">{action}</Label>
                                     </div>
                                 ))}
                             </div>
@@ -83,3 +86,5 @@ export function AddRoleForm({ isOpen, onOpenChange }: AddRoleFormProps) {
     </Dialog>
   );
 }
+
+    

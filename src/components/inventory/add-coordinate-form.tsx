@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 
 type AddCoordinateFormProps = {
   isOpen: boolean;
@@ -34,6 +35,10 @@ export function AddCoordinateForm({ isOpen, onOpenChange, warehouseName, section
             <Label htmlFor="coordinate-name">Nombre de la Coordenada</Label>
             <Input id="coordinate-name" placeholder="Ej. A1-001" />
           </div>
+          <div className="flex items-center space-x-2">
+            <Switch id="visible-switch" defaultChecked={true} />
+            <Label htmlFor="visible-switch">Visible</Label>
+          </div>
         </div>
         <DialogFooter>
           <DialogClose asChild>
@@ -47,3 +52,5 @@ export function AddCoordinateForm({ isOpen, onOpenChange, warehouseName, section
     </Dialog>
   );
 }
+
+    
