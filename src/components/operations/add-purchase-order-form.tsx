@@ -47,6 +47,11 @@ type ProductLine = {
   cost: number;
 };
 
+const pendingRepairOrders = [
+    { folio: 'OS-2024-002', status: 'Pendiente de Refacción' },
+    { folio: 'OS-2024-005', status: 'Pendiente de Refacción' },
+];
+
 export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderFormProps) {
   const [productLines, setProductLines] = useState<ProductLine[]>([
     { id: 1, sku: 'par-ip15-pan', quantity: 1, cost: 1500 },
@@ -117,7 +122,18 @@ export function AddPurchaseOrderForm({ isOpen, onOpenChange }: AddPurchaseOrderF
                   {purpose === 'pedido' && (
                     <div className="space-y-2">
                         <Label htmlFor="request-folio">Folio de Solicitud</Label>
-                        <Input id="request-folio" placeholder="Ej. OS-2024-001" />
+                         <Select>
+                            <SelectTrigger id="request-folio">
+                                <SelectValue placeholder="Seleccione un folio" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {pendingRepairOrders.map(order => (
+                                    <SelectItem key={order.folio} value={order.folio}>
+                                        {order.folio}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                   )}
                   <div className="space-y-2">
