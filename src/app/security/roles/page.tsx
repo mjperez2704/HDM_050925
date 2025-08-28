@@ -12,6 +12,7 @@ import { PlusCircle, Edit, Trash2, CheckCircle2 } from 'lucide-react';
 import { AddRoleForm } from '@/components/security/add-role-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
+import { AddPermissionForm } from '@/components/security/add-permission-form';
 
 const rolesData = [
     {
@@ -48,6 +49,7 @@ const rolesData = [
 
 export default function RolesPage() {
     const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
+    const [isAddPermissionModalOpen, setIsAddPermissionModalOpen] = useState(false);
 
     return (
         <SidebarProvider>
@@ -63,13 +65,22 @@ export default function RolesPage() {
                                     Define qué pueden hacer los usuarios en el sistema.
                                 </p>
                             </div>
-                            <Button 
-                                className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                                onClick={() => setIsAddRoleModalOpen(true)}
-                            >
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Agregar Rol
-                            </Button>
+                            <div className="flex gap-2">
+                                <Button 
+                                    variant="outline"
+                                    onClick={() => setIsAddPermissionModalOpen(true)}
+                                >
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Agregar Permiso
+                                </Button>
+                                <Button 
+                                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                    onClick={() => setIsAddRoleModalOpen(true)}
+                                >
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Agregar Rol
+                                </Button>
+                            </div>
                         </div>
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {rolesData.map((role) => (
@@ -120,6 +131,7 @@ export default function RolesPage() {
                 </div>
             </div>
             <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} />
+            <AddPermissionForm isOpen={isAddPermissionModalOpen} onOpenChange={setIsAddPermissionModalOpen} />
         </SidebarProvider>
     );
 }
