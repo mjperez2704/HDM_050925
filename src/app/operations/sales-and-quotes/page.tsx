@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, PlusCircle, Filter } from 'lucide-react';
+import { AddSaleQuoteForm } from '@/components/operations/add-sale-quote-form';
 
 const salesData = [
   {
@@ -48,6 +49,8 @@ const salesData = [
 ];
 
 export default function SalesAndQuotesPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
   const getStatusVariant = (status: string) => {
     switch (status) {
       case 'Pagado': return 'destructive';
@@ -78,6 +81,7 @@ export default function SalesAndQuotesPage() {
                     </Button>
                     <Button 
                       className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                      onClick={() => setIsModalOpen(true)}
                     >
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Crear Venta / Presupuesto
@@ -136,6 +140,7 @@ export default function SalesAndQuotesPage() {
           </main>
         </div>
       </div>
+      <AddSaleQuoteForm isOpen={isModalOpen} onOpenChange={setIsModalOpen} />
     </SidebarProvider>
   );
 }
