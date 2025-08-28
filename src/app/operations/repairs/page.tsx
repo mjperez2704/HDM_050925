@@ -13,6 +13,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Badge } from '@/components/ui/badge';
 import { MoreHorizontal, PlusCircle } from 'lucide-react';
 import { EquipmentReceptionForm } from '@/components/operations/equipment-reception-form';
+import { RepairDetailsModal } from '@/components/operations/repair-details-modal';
+import { UpdateStatusModal } from '@/components/operations/update-status-modal';
+import { AssignTechnicianModal } from '@/components/operations/assign-technician-modal';
 
 const repairsData = [
   {
@@ -33,8 +36,19 @@ const repairsData = [
   },
 ];
 
+type RepairOrder = typeof repairsData[0];
+
 export default function RepairsPage() {
   const [isReceptionModalOpen, setIsReceptionModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [selectedRepair, setSelectedRepair] = useState<RepairOrder | null>(null);
+
+  const handleOpenModal = (repair: RepairOrder, modalSetter: React.Dispatch<React.SetStateAction<boolean>>) => {
+    setSelectedRepair(repair);
+    modalSetter(true);
+  };
 
   return (
     <SidebarProvider>
@@ -86,7 +100,11 @@ export default function RepairsPage() {
                       <TableBody>
                         {repairsData.map((repair) => (
                           <TableRow key={repair.folio}>
-                            <TableCell className="font-medium text-destructive underline">{repair.folio}</TableCell>
+                            <TableCell>
+                               <Button variant="link" className="font-medium text-destructive p-0 h-auto" onClick={() => handleOpenModal(repair, setIsDetailsModalOpen)}>
+                                {repair.folio}
+                               </Button>
+                            </TableCell>
                             <TableCell>{repair.client}</TableCell>
                             <TableCell>{repair.equipment}</TableCell>
                             <TableCell>{repair.reportedIssue}</TableCell>
@@ -104,9 +122,9 @@ export default function RepairsPage() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                  <DropdownMenuItem>Ver Detalles</DropdownMenuItem>
-                                  <DropdownMenuItem>Actualizar Estado</DropdownMenuItem>
-                                  <DropdownMenuItem>Asignar Técnico</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleOpenModal(repair, setIsDetailsModalOpen)}>Ver Detalles</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleOpenModal(repair, setIsStatusModalOpen)}>Actualizar Estado</DropdownMenuItem>
+                                  <DropdownMenuItem onClick={() => handleOpenModal(repair, setIsAssignModalOpen)}>Asignar Técnico</DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </TableCell>
@@ -129,6 +147,21 @@ export default function RepairsPage() {
       <EquipmentReceptionForm 
         isOpen={isReceptionModalOpen} 
         onOpenChange={setIsReceptionModalOpen} 
+      />
+      <RepairDetailsModal 
+        isOpen={isDetailsModalOpen} 
+        onOpenChange={setIsDetailsModalOpen} 
+        repairOrder={selectedRepair} 
+      />
+      <UpdateStatusModal
+        isOpen={isStatusModalOpen}
+        onOpenChange={setIsStatusModalOpen}
+        repairOrder={selectedRepair}
+      />
+      <AssignTechnicianModal
+        isOpen={isAssignModalOpen}
+        onOpenChange={setIsAssignModalOpen}
+        repairOrder={selectedRepair}
       />
     </SidebarProvider>
   );
