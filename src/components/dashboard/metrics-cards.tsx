@@ -1,3 +1,4 @@
+
 import { DollarSign, Users, CreditCard } from "lucide-react"
 import {
   Card,
@@ -5,8 +6,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { getDashboardMetrics } from "@/actions/dashboard-actions"
 
-export function MetricsCards() {
+export async function MetricsCards() {
+  const { totalRevenue, totalSales, newClients } = await getDashboardMetrics();
+
   return (
     <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
       <Card>
@@ -17,9 +21,9 @@ export function MetricsCards() {
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">$45,231.89</div>
+          <div className="text-2xl font-bold">${totalRevenue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           <p className="text-xs text-muted-foreground">
-            +20.1% desde el mes pasado
+            Calculado de todas las ventas
           </p>
         </CardContent>
       </Card>
@@ -31,9 +35,9 @@ export function MetricsCards() {
           <CreditCard className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+2350</div>
+          <div className="text-2xl font-bold">+{totalSales}</div>
           <p className="text-xs text-muted-foreground">
-            +180.1% desde el mes pasado
+            Total de transacciones
           </p>
         </CardContent>
       </Card>
@@ -43,9 +47,9 @@ export function MetricsCards() {
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">+573</div>
+          <div className="text-2xl font-bold">+{newClients}</div>
           <p className="text-xs text-muted-foreground">
-            +19% desde el mes pasado
+            + en los últimos 30 días
           </p>
         </CardContent>
       </Card>

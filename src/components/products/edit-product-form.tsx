@@ -3,6 +3,9 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ProductSchema } from "@/lib/types/product";
+import type { Product } from '@/lib/types/product';
 import {
   Dialog,
   DialogContent,
@@ -19,216 +22,212 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { updateProduct } from '@/actions/products-actions';
 
-type Product = {
-    sku: string;
-    name: string;
-    unit: string;
-    coordinate: string;
-    attributes?: Record<string, string>;
-};
+
+type ProductWithAttributes = Product & { attributes?: Record<string, string> };
 
 type EditProductFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  product: Product | null;
+  product: ProductWithAttributes | null;
+  onProductUpdated: () => void;
 };
 
-export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFormProps) {
-    const [tieneVigencia, setTieneVigencia] = useState(false);
-    const [esParteDeKit, setEsParteDeKit] = useState(false);
+const FormSchema = ProductSchema.omit({ activo: true });
+type FormValues = Product;
 
-    const { register, handleSubmit, reset, setValue } = useForm({
-        defaultValues: {
-            sku: product?.sku || '',
-            name: product?.name || '',
-            unit: product?.unit || 'PZA',
-            description: '',
-            brand: '',
-            provider: '',
-            resupplyTime: '',
-            avgCost: '0',
-            listPrice: '0',
-            minStock: '0',
-            maxStock: '0',
-            atributo_1: '',
-            atributo_2: '',
-            atributo_3: '',
-            atributo_4: '',
-            atributo_5: '',
-            atributo_6: '',
-            atributo_7: '',
-            atributo_8: '',
-            atributo_9: '',
-            atributo_10: '',
-        }
+export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdated }: EditProductFormProps) {
+    const { toast } = useToast();
+    const form = useForm<FormValues>({
+        resolver: zodResolver(FormSchema),
+        defaultValues: product || {},
     });
 
     useEffect(() => {
         if (product) {
-            reset({
-                sku: product.sku,
-                name: product.name,
-                unit: product.unit,
-                // Llenar atributos si existen
-                ...product.attributes
-            });
+            form.reset(product);
         }
-    }, [product, reset]);
+    }, [product, form]);
 
-    const onSubmit = (data: any) => {
-        console.log(data);
-        onOpenChange(false);
+    async function onSubmit(data: FormValues) {
+        const result = await updateProduct(data);
+        if (result.message.startsWith('Error')) {
+             toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+             toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            onProductUpdated();
+        }
     };
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-4xl">
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <DialogHeader>
-            <DialogTitle>Editar Producto</DialogTitle>
-            <DialogDescription>
-                Actualiza los detalles del producto.
-            </DialogDescription>
-            </DialogHeader>
-            <ScrollArea className="max-h-[70vh]">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 pr-6">
-            {/* Columna Izquierda */}
-            <div className="md:col-span-2 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="product-name">Nombre del Producto</Label>
-                    <Input id="product-name" {...register('name')} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Descripción</Label>
-                    <Textarea id="description" {...register('description')} />
-                </div>
-                </div>
-                <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
-                <Input id="sku" {...register('sku')} disabled />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="brand">Marca</Label>
-                    <Select onValueChange={(value) => setValue('brand', value)}>
-                    <SelectTrigger id="brand">
-                        <SelectValue placeholder="Seleccione una marca" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="apple">Apple</SelectItem>
-                        <SelectItem value="samsung">Samsung</SelectItem>
-                        <SelectItem value="huawei">Huawei</SelectItem>
-                    </SelectContent>
-                    </Select>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="provider">Proveedor</Label>
-                    <Select onValueChange={(value) => setValue('provider', value)}>
-                    <SelectTrigger id="provider">
-                        <SelectValue placeholder="Seleccione un proveedor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="prov1">Proveedor 1</SelectItem>
-                        <SelectItem value="prov2">Proveedor 2</SelectItem>
-                    </SelectContent>
-                    </Select>
-                </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="unit">Unidad</Label>
-                        <Select onValueChange={(value) => setValue('unit', value)} defaultValue={product?.unit}>
-                        <SelectTrigger id="unit">
-                            <SelectValue placeholder="Seleccione una unidad" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="PZA">PZA</SelectItem>
-                            <SelectItem value="KIT">KIT</SelectItem>
-                            <SelectItem value="SRV">SRV</SelectItem>
-                        </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="resupply-time">Tiempo para Resurtir (días)</Label>
-                        <Input id="resupply-time" type="number" {...register('resupplyTime')} />
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="avg-cost">Costo Promedio</Label>
-                        <Input id="avg-cost" type="number" {...register('avgCost')} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="list-price">Precio Lista</Label>
-                        <Input id="list-price" type="number" {...register('listPrice')} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="min-stock">Mínimo</Label>
-                        <Input id="min-stock" type="number" {...register('minStock')} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="max-stock">Máximo</Label>
-                        <Input id="max-stock" type="number" {...register('maxStock')} />
-                    </div>
-                </div>
-                 {/* Atributos Adicionales */}
-                <div className="space-y-4 pt-4">
-                    <h3 className="text-lg font-medium">Atributos Adicionales</h3>
-                    <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {Array.from({ length: 10 }).map((_, i) => (
-                            <div key={`atributo-${i + 1}`} className="space-y-1">
-                                <Label htmlFor={`atributo-${i + 1}`}>Atributo {i + 1}</Label>
-                                <Input id={`atributo-${i + 1}`} {...register(`atributo_${i + 1}` as any)} />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+                <DialogHeader>
+                <DialogTitle>Editar Producto</DialogTitle>
+                <DialogDescription>
+                    Actualiza los detalles del producto.
+                </DialogDescription>
+                </DialogHeader>
+                <ScrollArea className="max-h-[70vh]">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 pr-6">
+                    <div className="md:col-span-2 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <FormField
+                                control={form.control}
+                                name="nombre"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Nombre del Producto</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Ej. Pantalla iPhone 15" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                            <FormField
+                                control={form.control}
+                                name="descripcion"
+                                render={({ field }) => (
+                                    <FormItem>
+                                    <FormLabel>Descripción</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Descripción detallada del producto" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                    </FormItem>
+                                )}
+                                />
+                        </div>
+                        <FormField
+                            control={form.control}
+                            name="sku"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>SKU</FormLabel>
+                                <FormControl>
+                                <Input disabled {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
+                        />
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="unidad"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Unidad</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                    <FormControl>
+                                        <SelectTrigger>
+                                        <SelectValue placeholder="Seleccione una unidad" />
+                                        </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                        <SelectItem value="PZA">PZA</SelectItem>
+                                        <SelectItem value="KIT">KIT</SelectItem>
+                                        <SelectItem value="SRV">SRV</SelectItem>
+                                    </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="costo_promedio"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Costo Promedio</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="precio_lista"
+                                render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Precio Lista</FormLabel>
+                                    <FormControl>
+                                    <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                                )}
+                            />
+                        </div>
+                        <div className="space-y-4 pt-4">
+                            <h3 className="text-lg font-medium">Atributos Adicionales</h3>
+                            <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {Array.from({ length: 10 }).map((_, i) => (
+                                <FormField
+                                    key={`atributo-${i + 1}`}
+                                    control={form.control}
+                                    name={`atributo_${i + 1}` as keyof FormValues}
+                                    render={({ field }) => (
+                                        <FormItem>
+                                        <FormLabel>Atributo {i + 1}</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder={`Valor del atributo ${i + 1}`} {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                        </FormItem>
+                                    )}
+                                    />
+                                ))}
                             </div>
-                        ))}
+                        </div>
+                    </div>
+                    <div className="space-y-4">
+                        <FormField
+                            control={form.control}
+                            name="es_serie"
+                            render={({ field }) => (
+                                <FormItem className="flex items-center justify-between rounded-lg border p-3">
+                                    <FormLabel>Es de Serie</FormLabel>
+                                    <FormControl>
+                                        <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                    </FormControl>
+                                </FormItem>
+                            )}
+                            />
+                        <div className="flex items-center justify-between rounded-lg border p-3">
+                        <Label htmlFor="inventoriable">Inventariable</Label>
+                        <Switch id="inventoriable" defaultChecked />
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Columna Derecha */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                <Label htmlFor="inventoriable">Inventariable</Label>
-                <Switch id="inventoriable" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                <Label htmlFor="blocked">Bloqueado (Inactivo)</Label>
-                <Switch id="blocked" />
-                </div>
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                <Label htmlFor="has-expiry">Tiene Vigencia</Label>
-                <Switch id="has-expiry" checked={tieneVigencia} onCheckedChange={setTieneVigencia} />
-                </div>
-                {tieneVigencia && (
-                    <div className="space-y-2 rounded-lg border p-3">
-                        <Label htmlFor="expiry-days">Días de Vigencia</Label>
-                        <Input id="expiry-days" type="number" defaultValue="1" />
-                    </div>
-                )}
-                <div className="flex items-center justify-between rounded-lg border p-3">
-                <Label htmlFor="is-kit-part">Es Parte de un Kit</Label>
-                <Switch id="is-kit-part" checked={esParteDeKit} onCheckedChange={setEsParteDeKit} />
-                </div>
-                {esParteDeKit && (
-                    <div className="space-y-2 rounded-lg border p-3">
-                        <Label htmlFor="kit-sku">Clave del Kit</Label>
-                        <Input id="kit-sku" placeholder="SKU del producto kit" />
-                    </div>
-                )}
-            </div>
-            </div>
-            </ScrollArea>
-            <DialogFooter>
-            <DialogClose asChild>
-                <Button type="button" variant="ghost">
-                Cancelar
-                </Button>
-            </DialogClose>
-            <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
-            </DialogFooter>
-        </form>
+                </ScrollArea>
+                <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost">
+                    Cancelar
+                    </Button>
+                </DialogClose>
+                <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
+                </DialogFooter>
+            </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

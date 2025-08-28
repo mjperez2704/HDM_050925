@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,51 +24,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
-const productsData = [
-    {
-        sku: 'PAR-IP15-PAN',
-        name: 'Pantalla iPhone 15',
-        unit: 'PZA',
-        coordinate: 'A1-001',
-    },
-    {
-        sku: 'ACC-CAB-USBC',
-        name: 'Cable USB-C 1m',
-        unit: 'PZA',
-        coordinate: 'LOTE-B1-001',
-    },
-    {
-        sku: 'EQU-SAM-S24',
-        name: 'Samsung Galaxy S24',
-        unit: 'PZA',
-        coordinate: 'C1-001',
-    },
-    {
-        sku: 'HER-DES-01',
-        name: 'Kit Desarmadores Precisión',
-        unit: 'KIT',
-        coordinate: 'N/A',
-    },
-    {
-        sku: 'SRV-DIAG-01',
-        name: 'Servicio de Diagnóstico',
-        unit: 'SRV',
-        coordinate: 'N/A',
-    },
-    {
-        sku: 'PAR-SAM-S22-BAT',
-        name: 'Batería Samsung S22',
-        unit: 'PZA',
-        coordinate: 'N/A',
-    },
-    {
-        sku: 'ACC-CARG-30W',
-        name: 'Cargador 30W',
-        unit: 'PZA',
-        coordinate: 'N/A',
-    },
-];
+import { getProducts, deleteProduct } from '@/actions/products-actions';
+import type { Product } from '@/lib/types/product';
+import { useToast } from "@/hooks/use-toast";
 
 const attributesData = {
     'PAR-IP15-PAN': {
@@ -92,14 +50,24 @@ const attributesData = {
     },
 };
 
-type Product = typeof productsData[0];
 type ProductWithAttributes = Product & { attributes?: Record<string, string> };
 
 export default function ProductsPage() {
+    const [productsData, setProductsData] = useState<Product[]>([]);
     const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
     const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
     const [isAttributesModalOpen, setIsAttributesModalOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<ProductWithAttributes | null>(null);
+    const { toast } = useToast();
+
+    const fetchProducts = async () => {
+        const products = await getProducts();
+        setProductsData(products as Product[]);
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, []);
 
     const handleOpenEditModal = (product: Product) => {
         const productAttributes = attributesData[product.sku as keyof typeof attributesData];
@@ -112,6 +80,33 @@ export default function ProductsPage() {
         setSelectedProduct({ ...product, attributes: productAttributes });
         setIsAttributesModalOpen(true);
     };
+
+    const handleDeleteProduct = async (id: number) => {
+        const result = await deleteProduct(id);
+        if (result.message.startsWith('Error')) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            fetchProducts();
+        }
+    };
+
+    const handleProductAdded = () => {
+        fetchProducts();
+        setIsAddProductModalOpen(false);
+    }
+
+    const handleProductUpdated = () => {
+        fetchProducts();
+        setIsEditProductModalOpen(false);
+    }
 
     return (
         <SidebarProvider>
@@ -153,13 +148,13 @@ export default function ProductsPage() {
                                             <TableHead>SKU</TableHead>
                                             <TableHead>Nombre</TableHead>
                                             <TableHead>Unidad</TableHead>
-                                            <TableHead>Coordenada</TableHead>
+                                            <TableHead>Precio Lista</TableHead>
                                             <TableHead><span className="sr-only">Actions</span></TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {productsData.map((product) => (
-                                            <TableRow key={product.sku}>
+                                            <TableRow key={product.id}>
                                                 <TableCell>
                                                     <Button 
                                                         variant="link" 
@@ -169,9 +164,9 @@ export default function ProductsPage() {
                                                         {product.sku}
                                                     </Button>
                                                 </TableCell>
-                                                <TableCell>{product.name}</TableCell>
-                                                <TableCell>{product.unit}</TableCell>
-                                                <TableCell>{product.coordinate}</TableCell>
+                                                <TableCell>{product.nombre}</TableCell>
+                                                <TableCell>{product.unidad}</TableCell>
+                                                <TableCell>${product.precio_lista.toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     <AlertDialog>
                                                         <DropdownMenu>
@@ -197,7 +192,12 @@ export default function ProductsPage() {
                                                             </AlertDialogHeader>
                                                             <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                                                            <AlertDialogAction 
+                                                                className="bg-destructive hover:bg-destructive/90"
+                                                                onClick={() => handleDeleteProduct(product.id)}
+                                                            >
+                                                                Eliminar
+                                                            </AlertDialogAction>
                                                             </AlertDialogFooter>
                                                         </AlertDialogContent>
                                                     </AlertDialog>
@@ -207,15 +207,15 @@ export default function ProductsPage() {
                                     </TableBody>
                                 </Table>
                                 <div className="pt-4 text-sm text-muted-foreground">
-                                    Mostrando 1-7 de 7 productos
+                                    Mostrando {productsData.length} de {productsData.length} productos
                                 </div>
                             </CardContent>
                         </Card>
                     </main>
                 </div>
             </div>
-            <AddProductForm isOpen={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen} />
-            <EditProductForm isOpen={isEditProductModalOpen} onOpenChange={setIsEditProductModalOpen} product={selectedProduct} />
+            <AddProductForm isOpen={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen} onProductAdded={handleProductAdded} />
+            <EditProductForm isOpen={isEditProductModalOpen} onOpenChange={setIsEditProductModalOpen} product={selectedProduct} onProductUpdated={handleProductUpdated} />
             <ProductAttributesModal isOpen={isAttributesModalOpen} onOpenChange={setIsAttributesModalOpen} product={selectedProduct} />
         </SidebarProvider>
     );
