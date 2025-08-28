@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Edit, Trash2, ChevronDown, Eye, Search, EyeOff } from 'lucide-react';
+import { PlusCircle, Edit, Trash2, MoreVertical, Eye, Search, EyeOff } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { VisualInventory } from '@/components/inventory/visual-inventory';
@@ -18,6 +18,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AssignSkuForm } from '@/components/inventory/assign-sku-form';
 import { cn } from '@/lib/utils';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { EditWarehouseForm } from '@/components/inventory/edit-warehouse-form';
+import { EditSectionForm } from '@/components/inventory/edit-section-form';
+import { EditCoordinateForm } from '@/components/inventory/edit-coordinate-form';
 
 type Coordinate = {
     name: string;
@@ -25,7 +29,20 @@ type Coordinate = {
     visible: boolean;
 };
 
-const warehouseData = [
+type Section = {
+    name: string;
+    coordinatesCount: number;
+    coordinates: Coordinate[];
+}
+
+type Warehouse = {
+    name: string;
+    description: string;
+    sectionsCount: number;
+    sections: Section[];
+}
+
+const warehouseData: Warehouse[] = [
     {
         name: 'Almacén Central',
         description: 'Administra las secciones y coordenadas de este almacén.',
@@ -43,7 +60,7 @@ const warehouseData = [
               name: 'Anaquel A2 - Baterías', 
               coordinatesCount: 1, 
               coordinates: [
-                { name: 'A2-001', skus: [], visible: false } // Esta coordenada está oculta
+                { name: 'A2-001', skus: [], visible: false }
               ] 
             }
         ]
@@ -71,35 +88,58 @@ export default function WarehouseManagementPage() {
     const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
     const [isCoordinateModalOpen, setIsCoordinateModalOpen] = useState(false);
     const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
-    const [selectedWarehouse, setSelectedWarehouse] = useState('');
-    const [selectedSection, setSelectedSection] = useState('');
+
+    const [isEditWarehouseModalOpen, setIsEditWarehouseModalOpen] = useState(false);
+    const [isEditSectionModalOpen, setIsEditSectionModalOpen] = useState(false);
+    const [isEditCoordinateModalOpen, setIsEditCoordinateModalOpen] = useState(false);
+
+    const [selectedWarehouse, setSelectedWarehouse] = useState<Warehouse | null>(null);
+    const [selectedSection, setSelectedSection] = useState<Section | null>(null);
     const [selectedCoordinate, setSelectedCoordinate] = useState<Coordinate | null>(null);
+    
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredData, setFilteredData] = useState(warehouseData);
     
-    // Simulación de permisos de usuario. En una aplicación real, esto vendría del estado de autenticación.
     const userPermissions = {
-        canViewHiddenCoordinates: true // Cambiar a `false` para ver el efecto
+        canViewHiddenCoordinates: true
     };
 
-    const handleOpenSectionModal = (warehouseName: string) => {
-        setSelectedWarehouse(warehouseName);
+    const handleOpenSectionModal = (warehouse: Warehouse) => {
+        setSelectedWarehouse(warehouse);
         setIsSectionModalOpen(true);
     };
 
-    const handleOpenCoordinateModal = (warehouseName: string, sectionName: string) => {
-        setSelectedWarehouse(warehouseName);
-        setSelectedSection(sectionName);
+    const handleOpenCoordinateModal = (warehouse: Warehouse, section: Section) => {
+        setSelectedWarehouse(warehouse);
+        setSelectedSection(section);
         setIsCoordinateModalOpen(true);
     };
 
-    const handleOpenAssignSkuModal = (warehouseName: string, sectionName: string, coordinate: Coordinate) => {
-        setSelectedWarehouse(warehouseName);
-        setSelectedSection(sectionName);
+    const handleOpenAssignSkuModal = (warehouse: Warehouse, section: Section, coordinate: Coordinate) => {
+        setSelectedWarehouse(warehouse);
+        setSelectedSection(section);
         setSelectedCoordinate(coordinate);
         setIsAssignSkuModalOpen(true);
     };
+
+    const handleOpenEditWarehouseModal = (warehouse: Warehouse) => {
+        setSelectedWarehouse(warehouse);
+        setIsEditWarehouseModalOpen(true);
+    };
+
+    const handleOpenEditSectionModal = (warehouse: Warehouse, section: Section) => {
+        setSelectedWarehouse(warehouse);
+        setSelectedSection(section);
+        setIsEditSectionModalOpen(true);
+    };
     
+    const handleOpenEditCoordinateModal = (warehouse: Warehouse, section: Section, coordinate: Coordinate) => {
+        setSelectedWarehouse(warehouse);
+        setSelectedSection(section);
+        setSelectedCoordinate(coordinate);
+        setIsEditCoordinateModalOpen(true);
+    };
+
     const handleSearch = () => {
         if (!searchTerm) {
             setFilteredData(warehouseData);
@@ -183,7 +223,7 @@ export default function WarehouseManagementPage() {
                                                     <CardTitle>{warehouse.name}</CardTitle>
                                                     <Badge variant="secondary">{warehouse.sectionsCount} secciones</Badge>
                                                 </div>
-                                                <Button variant="default" size="sm" onClick={() => handleOpenSectionModal(warehouse.name)}>
+                                                <Button variant="default" size="sm" onClick={() => handleOpenSectionModal(warehouse)}>
                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                     Agregar Sección
                                                 </Button>
@@ -203,7 +243,7 @@ export default function WarehouseManagementPage() {
                                                             </AccordionTrigger>
                                                             <div className="flex items-center gap-2 text-sm font-normal ml-4">
                                                                 <span>{section.coordinatesCount} Coordenadas</span>
-                                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); /* Lógica para editar sección */ }}>
+                                                                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleOpenEditSectionModal(warehouse, section); }}>
                                                                     <Edit className="h-4 w-4" />
                                                                 </Button>
                                                             </div>
@@ -212,25 +252,37 @@ export default function WarehouseManagementPage() {
                                                              {section.coordinates.length > 0 ? (
                                                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
                                                                     {section.coordinates.filter(c => c.visible || userPermissions.canViewHiddenCoordinates).map((coord, cIndex) => (
-                                                                        <Button 
-                                                                            key={cIndex}
-                                                                            variant="outline" 
-                                                                            size="sm"
-                                                                            className={cn(
-                                                                                "h-auto relative",
-                                                                                !coord.visible && "border-dashed border-yellow-500"
-                                                                            )}
-                                                                            disabled={coord.skus.length >= 2}
-                                                                            onClick={() => handleOpenAssignSkuModal(warehouse.name, section.name, coord)}
-                                                                        >
-                                                                            {!coord.visible && <EyeOff className="absolute top-1 right-1 h-3 w-3 text-yellow-500" />}
-                                                                            <div className="flex flex-col items-start w-full">
-                                                                                <span className="font-semibold">{coord.name}</span>
-                                                                                <span className="text-xs text-muted-foreground">
-                                                                                    SKUs: {coord.skus.length}/2
-                                                                                </span>
-                                                                            </div>
-                                                                        </Button>
+                                                                        <div key={cIndex} className="relative group/coord">
+                                                                            <Button 
+                                                                                variant="outline" 
+                                                                                size="sm"
+                                                                                className={cn(
+                                                                                    "h-auto w-full justify-start text-left relative pr-8",
+                                                                                    !coord.visible && "border-dashed border-yellow-500"
+                                                                                )}
+                                                                                disabled={coord.skus.length >= 2}
+                                                                                onClick={() => handleOpenAssignSkuModal(warehouse, section, coord)}
+                                                                            >
+                                                                                {!coord.visible && <EyeOff className="absolute top-1 right-1 h-3 w-3 text-yellow-500" />}
+                                                                                <div className="flex flex-col items-start w-full">
+                                                                                    <span className="font-semibold">{coord.name}</span>
+                                                                                    <span className="text-xs text-muted-foreground">
+                                                                                        SKUs: {coord.skus.length}/2
+                                                                                    </span>
+                                                                                </div>
+                                                                            </Button>
+                                                                            <DropdownMenu>
+                                                                                <DropdownMenuTrigger asChild>
+                                                                                     <Button variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-0 h-8 w-8 opacity-0 group-hover/coord:opacity-100">
+                                                                                         <MoreVertical className="h-4 w-4" />
+                                                                                     </Button>
+                                                                                </DropdownMenuTrigger>
+                                                                                <DropdownMenuContent>
+                                                                                    <DropdownMenuItem onClick={() => handleOpenEditCoordinateModal(warehouse, section, coord)}>Editar</DropdownMenuItem>
+                                                                                    <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                                </DropdownMenuContent>
+                                                                            </DropdownMenu>
+                                                                        </div>
                                                                     ))}
                                                                 </div>
                                                             ) : (
@@ -239,7 +291,7 @@ export default function WarehouseManagementPage() {
                                                                 </div>
                                                             )}
                                                             <div className="flex justify-end mt-4">
-                                                                <Button variant="secondary" size="sm" onClick={() => handleOpenCoordinateModal(warehouse.name, section.name)}>
+                                                                <Button variant="secondary" size="sm" onClick={() => handleOpenCoordinateModal(warehouse, section)}>
                                                                     <PlusCircle className="mr-2 h-4 w-4" />
                                                                     Agregar Coordenada
                                                                 </Button>
@@ -250,7 +302,7 @@ export default function WarehouseManagementPage() {
                                                 ))}
                                             </Accordion>
                                             <div className="flex justify-end gap-4 mt-6">
-                                                <Button variant="ghost">
+                                                <Button variant="ghost" onClick={() => handleOpenEditWarehouseModal(warehouse)}>
                                                     <Edit className="mr-2 h-4 w-4" />
                                                     Editar Almacén
                                                 </Button>
@@ -267,14 +319,22 @@ export default function WarehouseManagementPage() {
                     </main>
                 </div>
             </div>
+            {/* Add Modals */}
             <AddWarehouseForm isOpen={isWarehouseModalOpen} onOpenChange={setIsWarehouseModalOpen} />
-            <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouseName={selectedWarehouse} />
-            <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} warehouseName={selectedWarehouse} sectionName={selectedSection} />
+            <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouseName={selectedWarehouse?.name} />
+            <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} warehouseName={selectedWarehouse?.name} sectionName={selectedSection?.name} />
+            
+            {/* Edit Modals */}
+            <EditWarehouseForm isOpen={isEditWarehouseModalOpen} onOpenChange={setIsEditWarehouseModalOpen} warehouse={selectedWarehouse} />
+            <EditSectionForm isOpen={isEditSectionModalOpen} onOpenChange={setIsEditSectionModalOpen} warehouseName={selectedWarehouse?.name} section={selectedSection} />
+            <EditCoordinateForm isOpen={isEditCoordinateModalOpen} onOpenChange={setIsEditCoordinateModalOpen} warehouseName={selectedWarehouse?.name} sectionName={selectedSection?.name} coordinate={selectedCoordinate} />
+
+            {/* Assign SKU Modal */}
             <AssignSkuForm 
                 isOpen={isAssignSkuModalOpen} 
                 onOpenChange={setIsAssignSkuModalOpen}
-                warehouseName={selectedWarehouse}
-                sectionName={selectedSection}
+                warehouseName={selectedWarehouse?.name}
+                sectionName={selectedSection?.name}
                 coordinateName={selectedCoordinate?.name}
             />
         </SidebarProvider>
