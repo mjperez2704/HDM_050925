@@ -102,7 +102,8 @@ export default function ProductsPage() {
     const [selectedProduct, setSelectedProduct] = useState<ProductWithAttributes | null>(null);
 
     const handleOpenEditModal = (product: Product) => {
-        setSelectedProduct(product);
+        const productAttributes = attributesData[product.sku as keyof typeof attributesData];
+        setSelectedProduct({ ...product, attributes: productAttributes });
         setIsEditProductModalOpen(true);
     };
 

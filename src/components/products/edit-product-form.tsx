@@ -16,15 +16,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type Product = {
     sku: string;
     name: string;
     unit: string;
     coordinate: string;
+    attributes?: Record<string, string>;
 };
 
 type EditProductFormProps = {
@@ -50,6 +51,16 @@ export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFo
             listPrice: '0',
             minStock: '0',
             maxStock: '0',
+            atributo_1: '',
+            atributo_2: '',
+            atributo_3: '',
+            atributo_4: '',
+            atributo_5: '',
+            atributo_6: '',
+            atributo_7: '',
+            atributo_8: '',
+            atributo_9: '',
+            atributo_10: '',
         }
     });
 
@@ -59,6 +70,8 @@ export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFo
                 sku: product.sku,
                 name: product.name,
                 unit: product.unit,
+                // Llenar atributos si existen
+                ...product.attributes
             });
         }
     }, [product, reset]);
@@ -78,7 +91,8 @@ export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFo
                 Actualiza los detalles del producto.
             </DialogDescription>
             </DialogHeader>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+            <ScrollArea className="max-h-[70vh]">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 pr-6">
             {/* Columna Izquierda */}
             <div className="md:col-span-2 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -159,6 +173,18 @@ export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFo
                         <Input id="max-stock" type="number" {...register('maxStock')} />
                     </div>
                 </div>
+                 {/* Atributos Adicionales */}
+                <div className="space-y-4 pt-4">
+                    <h3 className="text-lg font-medium">Atributos Adicionales</h3>
+                    <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {Array.from({ length: 10 }).map((_, i) => (
+                            <div key={`atributo-${i + 1}`} className="space-y-1">
+                                <Label htmlFor={`atributo-${i + 1}`}>Atributo {i + 1}</Label>
+                                <Input id={`atributo-${i + 1}`} {...register(`atributo_${i + 1}` as any)} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
 
             {/* Columna Derecha */}
@@ -193,6 +219,7 @@ export function EditProductForm({ isOpen, onOpenChange, product }: EditProductFo
                 )}
             </div>
             </div>
+            </ScrollArea>
             <DialogFooter>
             <DialogClose asChild>
                 <Button type="button" variant="ghost">

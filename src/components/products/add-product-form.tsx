@@ -18,6 +18,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 type AddProductFormProps = {
   isOpen: boolean;
@@ -37,127 +38,142 @@ export function AddProductForm({ isOpen, onOpenChange }: AddProductFormProps) {
             Complete los campos para registrar un nuevo producto en el catálogo.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
-          {/* Columna Izquierda */}
-          <div className="md:col-span-2 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product-name">Nombre del Producto</Label>
-                <Input id="product-name" placeholder="Ej. Pantalla iPhone 15" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Descripción</Label>
-                <Textarea id="description" placeholder="Descripción detallada del producto" />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
-              <Input id="sku" placeholder="SKU-AUTO-12345" />
-              <div className="flex items-center space-x-2 mt-2">
-                <Checkbox id="generate-sku" defaultChecked />
-                <Label htmlFor="generate-sku" className="text-sm font-normal">
-                  Generar automáticamente
-                </Label>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div className="space-y-2">
-                <Label htmlFor="brand">Marca</Label>
-                <Select>
-                  <SelectTrigger id="brand">
-                    <SelectValue placeholder="Seleccione una marca" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="apple">Apple</SelectItem>
-                    <SelectItem value="samsung">Samsung</SelectItem>
-                    <SelectItem value="huawei">Huawei</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="provider">Proveedor</Label>
-                <Select>
-                  <SelectTrigger id="provider">
-                    <SelectValue placeholder="Seleccione un proveedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prov1">Proveedor 1</SelectItem>
-                    <SelectItem value="prov2">Proveedor 2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <ScrollArea className="max-h-[70vh]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4 pr-6">
+            {/* Columna Izquierda */}
+            <div className="md:col-span-2 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                    <Label htmlFor="unit">Unidad</Label>
-                    <Select>
-                    <SelectTrigger id="unit">
-                        <SelectValue placeholder="Seleccione una unidad" />
+                  <Label htmlFor="product-name">Nombre del Producto</Label>
+                  <Input id="product-name" placeholder="Ej. Pantalla iPhone 15" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Descripción</Label>
+                  <Textarea id="description" placeholder="Descripción detallada del producto" />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="sku">SKU</Label>
+                <Input id="sku" placeholder="SKU-AUTO-12345" />
+                <div className="flex items-center space-x-2 mt-2">
+                  <Checkbox id="generate-sku" defaultChecked />
+                  <Label htmlFor="generate-sku" className="text-sm font-normal">
+                    Generar automáticamente
+                  </Label>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                 <div className="space-y-2">
+                  <Label htmlFor="brand">Marca</Label>
+                  <Select>
+                    <SelectTrigger id="brand">
+                      <SelectValue placeholder="Seleccione una marca" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="pza">PZA</SelectItem>
-                        <SelectItem value="kit">KIT</SelectItem>
-                        <SelectItem value="srv">SRV</SelectItem>
+                      <SelectItem value="apple">Apple</SelectItem>
+                      <SelectItem value="samsung">Samsung</SelectItem>
+                      <SelectItem value="huawei">Huawei</SelectItem>
                     </SelectContent>
-                    </Select>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                    <Label htmlFor="resupply-time">Tiempo para Resurtir (días)</Label>
-                    <Input id="resupply-time" type="number" placeholder="Ej. 15" />
+                  <Label htmlFor="provider">Proveedor</Label>
+                  <Select>
+                    <SelectTrigger id="provider">
+                      <SelectValue placeholder="Seleccione un proveedor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="prov1">Proveedor 1</SelectItem>
+                      <SelectItem value="prov2">Proveedor 2</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="unit">Unidad</Label>
+                      <Select>
+                      <SelectTrigger id="unit">
+                          <SelectValue placeholder="Seleccione una unidad" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          <SelectItem value="pza">PZA</SelectItem>
+                          <SelectItem value="kit">KIT</SelectItem>
+                          <SelectItem value="srv">SRV</SelectItem>
+                      </SelectContent>
+                      </Select>
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="resupply-time">Tiempo para Resurtir (días)</Label>
+                      <Input id="resupply-time" type="number" placeholder="Ej. 15" />
+                  </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="avg-cost">Costo Promedio</Label>
+                      <Input id="avg-cost" type="number" defaultValue="0" />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="list-price">Precio Lista</Label>
+                      <Input id="list-price" type="number" defaultValue="0" />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="min-stock">Mínimo</Label>
+                      <Input id="min-stock" type="number" defaultValue="0" />
+                  </div>
+                  <div className="space-y-2">
+                      <Label htmlFor="max-stock">Máximo</Label>
+                      <Input id="max-stock" type="number" defaultValue="0" />
+                  </div>
+              </div>
+              
+              {/* Atributos Adicionales */}
+              <div className="space-y-4 pt-4">
+                <h3 className="text-lg font-medium">Atributos Adicionales</h3>
+                <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={`atributo-${i + 1}`} className="space-y-1">
+                            <Label htmlFor={`atributo-${i + 1}`}>Atributo {i + 1}</Label>
+                            <Input id={`atributo-${i + 1}`} placeholder={`Valor del atributo ${i + 1}`} />
+                        </div>
+                    ))}
+                </div>
+              </div>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="avg-cost">Costo Promedio</Label>
-                    <Input id="avg-cost" type="number" defaultValue="0" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="list-price">Precio Lista</Label>
-                    <Input id="list-price" type="number" defaultValue="0" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="min-stock">Mínimo</Label>
-                    <Input id="min-stock" type="number" defaultValue="0" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="max-stock">Máximo</Label>
-                    <Input id="max-stock" type="number" defaultValue="0" />
-                </div>
-            </div>
-          </div>
 
-          {/* Columna Derecha */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="inventoriable">Inventariable</Label>
-              <Switch id="inventoriable" defaultChecked />
+            {/* Columna Derecha */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label htmlFor="inventoriable">Inventariable</Label>
+                <Switch id="inventoriable" defaultChecked />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label htmlFor="blocked">Bloqueado (Inactivo)</Label>
+                <Switch id="blocked" />
+              </div>
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label htmlFor="has-expiry">Tiene Vigencia</Label>
+                <Switch id="has-expiry" checked={tieneVigencia} onCheckedChange={setTieneVigencia} />
+              </div>
+              {tieneVigencia && (
+                  <div className="space-y-2 rounded-lg border p-3">
+                      <Label htmlFor="expiry-days">Días de Vigencia</Label>
+                      <Input id="expiry-days" type="number" defaultValue="1" />
+                  </div>
+              )}
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <Label htmlFor="is-kit-part">Es Parte de un Kit</Label>
+                <Switch id="is-kit-part" checked={esParteDeKit} onCheckedChange={setEsParteDeKit} />
+              </div>
+              {esParteDeKit && (
+                   <div className="space-y-2 rounded-lg border p-3">
+                      <Label htmlFor="kit-sku">Clave del Kit</Label>
+                      <Input id="kit-sku" placeholder="SKU del producto kit" />
+                  </div>
+              )}
             </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="blocked">Bloqueado (Inactivo)</Label>
-              <Switch id="blocked" />
-            </div>
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="has-expiry">Tiene Vigencia</Label>
-              <Switch id="has-expiry" checked={tieneVigencia} onCheckedChange={setTieneVigencia} />
-            </div>
-            {tieneVigencia && (
-                <div className="space-y-2 rounded-lg border p-3">
-                    <Label htmlFor="expiry-days">Días de Vigencia</Label>
-                    <Input id="expiry-days" type="number" defaultValue="1" />
-                </div>
-            )}
-            <div className="flex items-center justify-between rounded-lg border p-3">
-              <Label htmlFor="is-kit-part">Es Parte de un Kit</Label>
-              <Switch id="is-kit-part" checked={esParteDeKit} onCheckedChange={setEsParteDeKit} />
-            </div>
-            {esParteDeKit && (
-                 <div className="space-y-2 rounded-lg border p-3">
-                    <Label htmlFor="kit-sku">Clave del Kit</Label>
-                    <Input id="kit-sku" placeholder="SKU del producto kit" />
-                </div>
-            )}
           </div>
-        </div>
+        </ScrollArea>
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="ghost">
