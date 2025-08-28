@@ -1,7 +1,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { clientSchema, type ClientSchema } from "@/lib/schemas/client-schema";
+import { ClientSchema } from "@/lib/types/client";
+import type { Client } from "@/lib/types/client";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
@@ -25,17 +25,18 @@ type AddClientFormProps = {
 
 export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
   const { toast } = useToast();
-  const form = useForm<ClientSchema>({
-    resolver: zodResolver(clientSchema),
+  const form = useForm<Omit<Client, 'id' | 'fecha_registro'>>({
+    resolver: zodResolver(ClientSchema),
     defaultValues: {
-      razonSocial: "",
+      razon_social: "",
       email: "",
       telefono: "",
       rfc: "",
+      tipoCliente: undefined,
     }
   });
 
-  function onSubmit(data: ClientSchema) {
+  function onSubmit(data: Omit<Client, 'id' | 'fecha_registro'>) {
     console.log("Datos del cliente válidos:", data);
     toast({
       title: "Cliente Creado",
@@ -59,7 +60,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
             <div className="grid gap-6 py-4">
               <FormField
                 control={form.control}
-                name="razonSocial"
+                name="razon_social"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Nombre / Razón Social</FormLabel>
