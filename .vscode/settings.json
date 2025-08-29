@@ -1,0 +1,33 @@
+{
+    "IDX.agenticWorkspace": true,
+    "IDX.corgiMode": true,
+    "npm.enableRunFromFolder": true,
+    "sqltools.codelensLanguages": [
+        "sql",
+        "mysql",
+        "mariadb"
+    ],
+    "sqltools.completionLanguages": [
+        "sql",
+        "mysql",
+        "mariadb"
+    ],
+    "sqltools.connectionExplorer.groupConnected": true,
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "previewLimit": 50,
+            "server": "195.250.27.25",
+            "port": 3306,
+            "driver": "MariaDB",
+            "name": "hdm",
+            "database": "megashop_hdm",
+            "username": "megashop_hdm",
+            "password": "megashop_hdm",
+            "connectionTimeout": 3000
+        }
+    ]
+}

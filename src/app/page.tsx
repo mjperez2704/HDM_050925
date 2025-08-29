@@ -18,12 +18,13 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import { SplashScreen } from "@/components/splash-screen";
+import { login } from "@/actions/auth-actions";
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const [email, setEmail] = React.useState("admin@example.com");
-  const [password, setPassword] = React.useState("password123");
+  const [email, setEmail] = React.useState("");
+  const [password, setPassword] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [showSplash, setShowSplash] = React.useState(true);
   
@@ -31,21 +32,29 @@ export default function LoginPage() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simular una llamada a la API
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    if (email === "admin@example.com" && password === "password123") {
-      toast({
-        title: "Inicio de Sesión Exitoso",
-        description: "Redirigiendo al dashboard.",
-      });
-      router.push("/dashboard");
-    } else {
-      toast({
+    try {
+      const result = await login({ email, password });
+      
+      if (result.success) {
+        toast({
+          title: "Inicio de Sesión Exitoso",
+          description: "Redirigiendo al dashboard.",
+        });
+        router.push("/dashboard");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error de autenticación",
+          description: result.message,
+        });
+      }
+    } catch (error) {
+       toast({
         variant: "destructive",
-        title: "Error de autenticación",
-        description: "Las credenciales son incorrectas. Por favor, inténtalo de nuevo.",
+        title: "Error del servidor",
+        description: "No se pudo conectar con el servidor. Inténtalo de nuevo.",
       });
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -84,6 +93,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -94,6 +104,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
           </CardContent>
