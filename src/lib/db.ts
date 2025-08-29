@@ -13,4 +13,5 @@ const pool = mysql.createPool({
   connectTimeout: 10000, // 10 segundos de tiempo de espera para la conexión
 });
 
+
 export default pool;

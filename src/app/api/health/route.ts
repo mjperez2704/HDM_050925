@@ -1,5 +1,6 @@
 
 import { NextResponse } from 'next/server';
+import mysql from 'mysql2/promise';
 import db from '@/lib/db';
 
 export async function GET() {
@@ -7,6 +8,7 @@ export async function GET() {
     // Intenta obtener una conexión del pool.
     // Esto es suficiente para verificar que las credenciales y la conexión son válidas.
     const connection = await db.getConnection();
+    
     // Libera la conexión inmediatamente después de obtenerla.
     connection.release();
     
