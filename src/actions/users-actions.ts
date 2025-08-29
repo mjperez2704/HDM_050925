@@ -9,16 +9,17 @@ import type { UserWithId } from '@/lib/types/security';
 export async function getUsers(): Promise<UserWithRole[]> {
   try {
     const [rows] = await db.query(`
-      SELECT u.id, 
-             u.username,
-             u.nombre,
-             u.email, 
-             r.nombre as rol, 
-             u.activo 
-             FROM seg_usuarios u 
-             LEFT JOIN seg_roles r 
-             ON u.rol_id = r.id 
-             ORDER BY u.id ASC
+      SELECT 
+        u.id, 
+        u.username,
+        u.nombre,
+        u.email, 
+        r.nombre as rol, 
+        u.activo 
+      FROM seg_usuarios u 
+      LEFT JOIN seg_usuario_rol ur ON u.id = ur.usuario_id
+      LEFT JOIN seg_roles r ON ur.rol_id = r.id 
+      ORDER BY u.id ASC
     `);
     return rows as UserWithRole[];
   } catch (error) {
@@ -63,8 +64,8 @@ export async function createUser(formData: unknown) {
 
   try {
     const [result]: any = await db.query(
-      'INSERT INTO seg_usuarios (username, nombre, email, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?, ?)',
-      [username, fullName, email, password, rol_id, 1]
+      'INSERT INTO seg_usuarios (username, nombre, email, password_hash, activo) VALUES (?, ?, ?, ?, ?)',
+      [username, fullName, email, password, 1]
     );
     const userId = result.insertId;
 
