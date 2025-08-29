@@ -9,7 +9,14 @@
     pkgs.zulu
   ];
   # Sets environment variables in the workspace
-  env = {};
+  env = {
+    DB_HOST="195.250.27.25";
+    DB_USER="megashop_hdm";
+    DB_PASSWORD="megashop_hdm";
+    DB_DATABASE="megashop_hdm";
+    DB_PORT="3306";
+
+  };
   # This adds a file watcher to startup the firebase emulators. The emulators will only start if
   # a firebase.json file is written into the user's directory
   services.firebase.emulators = {
