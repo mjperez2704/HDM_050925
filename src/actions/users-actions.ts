@@ -208,3 +208,21 @@ export async function toggleUserStatus(id: number, currentState: boolean) {
         return { success: false, message: 'Error al cambiar el estado del usuario.' };
     }
 }
+
+export async function updateUserPin(id: number, pin: string) {
+    if (!id) {
+        return { success: false, message: 'ID de usuario no proporcionado.' };
+    }
+    if (!/^\d{4}$/.test(pin)) {
+        return { success: false, message: 'El PIN debe ser de 4 dígitos numéricos.' };
+    }
+
+    try {
+        await db.query('UPDATE seg_usuarios SET pin = ? WHERE id = ?', [pin, id]);
+        revalidatePath('/security/users');
+        return { success: true, message: 'PIN del usuario actualizado exitosamente.' };
+    } catch (error) {
+        console.error('Error al actualizar el PIN del usuario:', error);
+        return { success: false, message: 'Error de base de datos al actualizar el PIN.' };
+    }
+}

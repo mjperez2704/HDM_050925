@@ -79,9 +79,9 @@ export function PinConfirmationModal({ isOpen, onOpenChange, onConfirm }: PinCon
              <div className="p-3 bg-primary/10 rounded-full mb-4">
                 <ShieldAlert className="h-8 w-8 text-primary" />
              </div>
-            <DialogTitle className="text-2xl">Confirmación Requerida</DialogTitle>
+            <DialogTitle className="text-2xl">Asignar Nuevo PIN</DialogTitle>
             <DialogDescription className="mt-2">
-              Por tu seguridad, ingresa tu PIN de 4 dígitos para continuar.
+              Ingresa el nuevo PIN de 4 dígitos para este usuario.
             </DialogDescription>
           </div>
         </DialogHeader>
@@ -107,7 +107,7 @@ export function PinConfirmationModal({ isOpen, onOpenChange, onConfirm }: PinCon
             onClick={handleSubmit}
             disabled={!isPinComplete}
           >
-            Confirmar Acción
+            Confirmar PIN
           </Button>
            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancelar

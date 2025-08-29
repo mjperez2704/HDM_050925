@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { getUsers, deleteUser, toggleUserStatus } from '@/actions/users-actions';
+import { getUsers, deleteUser, toggleUserStatus, updateUserPin } from '@/actions/users-actions';
 import type { UserWithRole } from '@/lib/types/security';
 import { useToast } from "@/hooks/use-toast";
 
@@ -49,6 +49,11 @@ export default function UsersPage() {
     const handleOpenEditModal = (user: UserWithRole) => {
         setSelectedUser(user);
         setIsEditUserModalOpen(true);
+    };
+    
+    const handleOpenPinModal = (user: UserWithRole) => {
+        setSelectedUser(user);
+        setIsPinModalOpen(true);
     };
 
     const handleDeleteUser = async (id: number) => {
@@ -85,9 +90,22 @@ export default function UsersPage() {
         }
     };
 
-    const handlePinConfirm = (pin: string) => {
-        console.log("PIN Ingresado para cambiar PIN de usuario:", pin);
-        // Aquí iría la lógica de validación y cambio de PIN
+    const handlePinConfirm = async (pin: string) => {
+        if (!selectedUser) return;
+
+        const result = await updateUserPin(selectedUser.id, pin);
+        if (!result.success) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+        }
         setIsPinModalOpen(false);
     };
 
@@ -146,7 +164,7 @@ export default function UsersPage() {
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuLabel>Acciones</DropdownMenuLabel>
                                                                 <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>Editar</DropdownMenuItem>
-                                                                <DropdownMenuItem onClick={() => setIsPinModalOpen(true)}>
+                                                                <DropdownMenuItem onClick={() => handleOpenPinModal(user)}>
                                                                     Cambiar PIN de Usuario
                                                                 </DropdownMenuItem>
                                                                 <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
