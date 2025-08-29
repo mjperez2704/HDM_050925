@@ -9,6 +9,9 @@ export const CreateUserSchema = z.object({
   email: z.string().email("Email inválido."),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
   rol_id: z.coerce.number().int().positive("Debes seleccionar un rol."),
+  pin: z.string().length(4, "El PIN debe ser de 4 dígitos.").regex(/^\d{4}$/, "El PIN solo debe contener números."),
+  forcePasswordChange: z.boolean().default(false),
+  forcePinChange: z.boolean().default(false),
 });
 
 // Zod Schema for a user from the DB
@@ -21,6 +24,9 @@ export const UserSchema = z.object({
   rol_id: z.number().int().positive("Debes seleccionar un rol."),
   activo: z.boolean(),
   ultimo_acceso: z.date().optional().nullable(),
+  pin: z.string().length(4, "El PIN debe ser de 4 dígitos.").optional().nullable(),
+  forzar_cambio_pwd: z.boolean().default(false),
+  forzar_cambio_pin: z.boolean().default(false),
 });
 
 // TypeScript Type derived from the schema

@@ -55,7 +55,7 @@ export async function createUser(formData: unknown) {
     };
   }
 
-  const { username, nombre, apellido_p, email, password, rol_id } = validatedFields.data;
+  const { username, nombre, apellido_p, email, password, rol_id, pin, forcePasswordChange, forcePinChange } = validatedFields.data;
   const fullName = apellido_p ? `${nombre} ${apellido_p}` : nombre;
   
   // NOTA: La contraseña se guarda en texto plano.
@@ -64,10 +64,14 @@ export async function createUser(formData: unknown) {
 
   try {
     const [result]: any = await db.query(
-      'INSERT INTO seg_usuarios (username, nombre, email, password_hash, activo) VALUES (?, ?, ?, ?, ?)',
-      [username, fullName, email, password, 1]
+      'INSERT INTO seg_usuarios (username, nombre, email, password_hash, activo, pin, forzar_cambio_pwd, forzar_cambio_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [username, fullName, email, password, 1, pin, forcePasswordChange, forcePinChange]
     );
     const userId = result.insertId;
+
+    if (!userId) {
+        throw new Error("No se pudo obtener el ID del usuario insertado.");
+    }
 
     await db.query(
       'INSERT INTO seg_usuario_rol (usuario_id, rol_id) VALUES (?, ?)',
