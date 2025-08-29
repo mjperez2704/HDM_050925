@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -24,41 +24,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-
-const rolesData = [
-    {
-        name: 'Administrador',
-        description: 'Acceso total al sistema.',
-        permissionsCount: 0,
-        permissions: [],
-    },
-    {
-        name: 'Técnico',
-        description: 'Acceso a órdenes de servicio e inventario de refacciones.',
-        permissionsCount: 8,
-        permissions: [
-            'Inventario: ver',
-            'Inventario: ajustar',
-            'Inventario: transferir',
-            'Inventario: ver_costos',
-            'Reparaciones: ver',
-        ],
-    },
-    {
-        name: 'Ventas',
-        description: 'Acceso a clientes, presupuestos y ventas.',
-        permissionsCount: 0,
-        permissions: [],
-    },
-    {
-        name: 'Gerente',
-        description: 'Acceso a reportes y supervisión de personal.',
-        permissionsCount: 0,
-        permissions: [],
-    },
-];
+import { getRolesWithDetails, deleteRole, RoleWithDetails } from '@/actions/roles-actions';
+import { ReassignAndDeleteRoleDialog } from '@/components/security/reassign-and-delete-role-dialog';
+import { useToast } from "@/hooks/use-toast";
 
 const permissionsData = [
     { key: 'inventario:ver', module: 'Inventario', description: 'Permite ver el inventario' },
@@ -72,14 +41,50 @@ const permissionsData = [
 type Permission = typeof permissionsData[0];
 
 export default function RolesPage() {
+    const [rolesData, setRolesData] = useState<RoleWithDetails[]>([]);
     const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
     const [isAddPermissionModalOpen, setIsAddPermissionModalOpen] = useState(false);
     const [isEditPermissionModalOpen, setIsEditPermissionModalOpen] = useState(false);
+    const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
+    const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
+    const [selectedRole, setSelectedRole] = useState<RoleWithDetails | null>(null);
     const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
+    const { toast } = useToast();
+
+    const fetchRoles = async () => {
+        const roles = await getRolesWithDetails();
+        setRolesData(roles);
+    };
+
+    useEffect(() => {
+        fetchRoles();
+    }, []);
 
     const handleOpenEditPermissionModal = (permission: Permission) => {
         setSelectedPermission(permission);
         setIsEditPermissionModalOpen(true);
+    };
+
+    const handleDeleteClick = (role: RoleWithDetails) => {
+        setSelectedRole(role);
+        if (role.usersCount > 0) {
+            setIsReassignDialogOpen(true);
+        } else {
+            setIsConfirmDeleteDialogOpen(true);
+        }
+    };
+    
+    const handleConfirmDelete = async () => {
+        if (!selectedRole) return;
+        const result = await deleteRole(selectedRole.id);
+        if (result.success) {
+            toast({ title: "Éxito", description: result.message });
+            fetchRoles();
+        } else {
+            toast({ variant: "destructive", title: "Error", description: result.message });
+        }
+        setIsConfirmDeleteDialogOpen(false);
+        setSelectedRole(null);
     };
 
     return (
@@ -113,7 +118,7 @@ export default function RolesPage() {
                                 </div>
                                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                     {rolesData.map((role) => (
-                                        <Card key={role.name}>
+                                        <Card key={role.id}>
                                             <CardHeader>
                                                 <div className="flex items-center justify-between">
                                                     <CardTitle>{role.name}</CardTitle>
@@ -125,29 +130,19 @@ export default function RolesPage() {
                                             </CardHeader>
                                             <CardContent>
                                                 <div className="space-y-3">
-                                                    <h4 className="text-sm font-semibold">Permisos Clave:</h4>
-                                                    {role.permissions.length > 0 ? (
-                                                        <ul className="space-y-2 text-sm text-muted-foreground">
-                                                            {role.permissions.slice(0, 5).map((permission, index) => (
-                                                                <li key={index} className="flex items-center gap-2">
-                                                                    <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                                                    <span>{permission}</span>
-                                                                </li>
-                                                            ))}
-                                                            {role.permissions.length > 5 && (
-                                                                <li className="pl-6">y {role.permissions.length - 5} más...</li>
-                                                            )}
-                                                        </ul>
-                                                    ) : (
-                                                        <p className="text-sm text-muted-foreground">No hay permisos clave definidos.</p>
-                                                    )}
+                                                    <h4 className="text-sm font-semibold">Usuarios Activos en este Rol: {role.usersCount}</h4>
                                                 </div>
                                                 <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t">
                                                     <Button variant="ghost" size="sm" className="flex items-center gap-2">
                                                         <Edit className="h-4 w-4" />
                                                         Editar
                                                     </Button>
-                                                    <Button variant="ghost" size="sm" className="flex items-center gap-2 text-destructive hover:text-destructive">
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="sm" 
+                                                        className="flex items-center gap-2 text-destructive hover:text-destructive"
+                                                        onClick={() => handleDeleteClick(role)}
+                                                    >
                                                         <Trash2 className="h-4 w-4" />
                                                         Eliminar
                                                     </Button>
@@ -236,9 +231,36 @@ export default function RolesPage() {
                     </main>
                 </div>
             </div>
-            <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} />
+            <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} onRoleAdded={fetchRoles} />
             <AddPermissionForm isOpen={isAddPermissionModalOpen} onOpenChange={setIsAddPermissionModalOpen} />
             <EditPermissionForm isOpen={isEditPermissionModalOpen} onOpenChange={setIsEditPermissionModalOpen} permission={selectedPermission} />
+             {selectedRole && (
+                <>
+                    <ReassignAndDeleteRoleDialog
+                        isOpen={isReassignDialogOpen}
+                        onOpenChange={setIsReassignDialogOpen}
+                        roleToDelete={selectedRole}
+                        allRoles={rolesData}
+                        onDeletionCompleted={fetchRoles}
+                    />
+                    <AlertDialog open={isConfirmDeleteDialogOpen} onOpenChange={setIsConfirmDeleteDialogOpen}>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>¿Estás seguro de eliminar el rol "{selectedRole.name}"?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Esta acción no se puede deshacer. Se eliminará permanentemente el rol y todos sus permisos asociados.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel onClick={() => setSelectedRole(null)}>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+                                    Eliminar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </>
+            )}
         </SidebarProvider>
     );
 }

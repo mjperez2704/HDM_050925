@@ -1,4 +1,5 @@
 
+
 import { z } from 'zod';
 
 // Zod Schema for creating a new user (from form)
@@ -65,3 +66,13 @@ export const RoleSchema = z.object({
 });
 
 export type Role = z.infer<typeof RoleSchema>;
+
+// Zod Schema for Permissions
+export const PermissionSchema = z.object({
+    id: z.number().int().positive(),
+    clave: z.string().min(3, "La clave es requerida."),
+    modulo: z.string().min(3, "El módulo es requerido."),
+    descripcion: z.string().optional().nullable(),
+});
+
+export type Permission = z.infer<typeof PermissionSchema>;
