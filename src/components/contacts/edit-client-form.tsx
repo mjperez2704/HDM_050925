@@ -26,7 +26,7 @@ type EditClientFormProps = {
   client: ClientWithId | null;
 };
 
-const FormSchema = ClientSchema.omit({ fecha_registro: true });
+const FormSchema = ClientSchema.omit({ fechaRegistro: true });
 
 export function EditClientForm({ isOpen, onOpenChange, client }: EditClientFormProps) {
     const { toast } = useToast();

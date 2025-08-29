@@ -18,7 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/actions/clients-actions";
-import { revalidatePath } from "next/cache";
 import { useRouter } from "next/navigation";
 
 type AddClientFormProps = {
@@ -26,12 +25,12 @@ type AddClientFormProps = {
   onOpenChange: (isOpen: boolean) => void;
 };
 
-const FormSchema = ClientSchema.omit({ id: true, fecha_registro: true });
+const FormSchema = ClientSchema.omit({ id: true, fechaRegistro: true });
 
 export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
   const { toast } = useToast();
   const router = useRouter();
-  const form = useForm<Omit<Client, 'id' | 'fecha_registro'>>({
+  const form = useForm<Omit<Client, 'id' | 'fechaRegistro'>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       razonSocial: "",
@@ -42,7 +41,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
     }
   });
 
-  async function onSubmit(data: Omit<Client, 'id' | 'fecha_registro'>) {
+  async function onSubmit(data: Omit<Client, 'id' | 'fechaRegistro'>) {
     const result = await createClient(data);
     if (result.message.startsWith('Error')) {
       toast({
@@ -57,7 +56,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
       });
       onOpenChange(false);
       form.reset();
-      router.refresh(); // O revalidatePath si es necesario
+      router.refresh(); 
     }
   }
 
