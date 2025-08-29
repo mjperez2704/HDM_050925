@@ -2,9 +2,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import db from '@/lib/db';
 import { CreateUserSchema, UserWithRole } from '@/lib/types/security';
 import type { UserWithId } from '@/lib/types/security';
+import type { PoolConnection } from 'mysql2/promise';
 
 export async function getUsers(): Promise<UserWithRole[]> {
   try {
@@ -27,7 +29,6 @@ export async function getUsers(): Promise<UserWithRole[]> {
     return [];
   }
 }
-
 
 export async function getUserByUsername(username: string): Promise<UserWithId[]> {
   try {
@@ -57,35 +58,44 @@ export async function createUser(formData: unknown) {
 
   const { username, nombre, apellido_p, email, password, rol_id, pin, forcePasswordChange, forcePinChange } = validatedFields.data;
   const fullName = apellido_p ? `${nombre} ${apellido_p}` : nombre;
-  
-  // NOTA: La contraseña se guarda en texto plano.
-  // En producción, se debe usar una librería como bcrypt para hashear la contraseña.
-  // const hashedPassword = await bcrypt.hash(password, 10);
 
+  let connection: PoolConnection | null = null;
   try {
-    const [result]: any = await db.query(
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+
+    const [userResult]: any = await connection.query(
       'INSERT INTO seg_usuarios (username, nombre, email, password_hash, activo, pin, forzar_cambio_pwd, forzar_cambio_pin) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
       [username, fullName, email, password, 1, pin, forcePasswordChange, forcePinChange]
     );
-    const userId = result.insertId;
+    const userId = userResult.insertId;
 
     if (!userId) {
-        throw new Error("No se pudo obtener el ID del usuario insertado.");
+      throw new Error("No se pudo obtener el ID del usuario insertado.");
     }
 
-    await db.query(
+    await connection.query(
       'INSERT INTO seg_usuario_rol (usuario_id, rol_id) VALUES (?, ?)',
       [userId, rol_id]
     );
 
+    await connection.commit();
     revalidatePath('/security/users');
     return { message: 'Usuario creado exitosamente.' };
+
   } catch (error: any) {
+    if (connection) {
+      await connection.rollback();
+    }
     console.error(error);
     if (error.code === 'ER_DUP_ENTRY') {
-        return { message: 'Error: El correo electrónico o el nombre de usuario ya está registrado.' };
+      return { message: 'Error: El correo electrónico o el nombre de usuario ya está registrado.' };
     }
-    return { message: 'Error al crear el usuario.' };
+    return { message: 'Error de base de datos al crear el usuario.' };
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 }
 
