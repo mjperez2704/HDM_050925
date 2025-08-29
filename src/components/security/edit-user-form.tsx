@@ -57,18 +57,21 @@ export function EditUserForm({ isOpen, onOpenChange, user, onUserUpdated }: Edit
     }
     if (isOpen) {
       loadRoles();
-      if (user) {
-        const userRole = roles.find(r => r.nombre === user.rol);
-        form.reset({
-            id: user.id,
-            nombre: user.nombre,
-            email: user.email,
-            rol_id: userRole ? userRole.id : 0,
-            password: "", // Siempre empezar vacío
-        });
-      }
     }
-  }, [isOpen, user, roles, form]);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (user && roles.length > 0) {
+      const userRole = roles.find(r => r.nombre === user.rol);
+      form.reset({
+          id: user.id,
+          nombre: user.nombre,
+          email: user.email,
+          rol_id: userRole ? userRole.id : 0,
+          password: "", // Siempre empezar vacío
+      });
+    }
+  }, [user, roles, form.reset]);
   
   async function onSubmit(data: any) {
     // Si el password está vacío, no lo enviamos
