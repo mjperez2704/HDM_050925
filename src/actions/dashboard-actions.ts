@@ -26,6 +26,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     };
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
+    // Devuelve valores por defecto en caso de error para no bloquear la UI
     return {
       totalRevenue: 0,
       totalSales: 0,
