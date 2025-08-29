@@ -15,10 +15,7 @@ export async function getProducts() {
       SELECT 
         id, sku, nombre, unidad, precio_lista as precioLista, costo_promedio as costoPromedio, 
         es_serie as esSerie, descripcion, categoria_id as categoriaId, marca_id as marcaId, 
-        modelo_id as modeloId, atributo_1 as atributo1, atributo_2 as atributo2, 
-        atributo_3 as atributo3, atributo_4 as atributo4, atributo_5 as atributo5, 
-        atributo_6 as atributo6, atributo_7 as atributo7, atributo_8 as atributo8, 
-        atributo_9 as atributo9, atributo_10 as atributo10 
+        modelo_id as modeloId
       FROM cat_productos WHERE activo = 1 ORDER BY id DESC
     `);
     return rows as Product[];
