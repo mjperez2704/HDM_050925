@@ -51,3 +51,30 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
     return { success: false, message: 'Error del servidor al intentar iniciar sesión.' };
   }
 }
+
+
+// SIMULACIÓN: En una aplicación real, obtendrías esto de la sesión (ej. Next-Auth, JWT cookie).
+// Por ahora, asumimos que el usuario con ID 1 está logueado.
+const getCurrentUserId = () => 1;
+
+export async function checkUserPermission(permissionId: number): Promise<boolean> {
+  const userId = getCurrentUserId();
+  if (!userId) {
+    return false;
+  }
+
+  try {
+    const [rows]: any = await db.query(
+      `SELECT COUNT(*) as count
+       FROM seg_usuario_rol ur
+       JOIN seg_rol_permiso rp ON ur.rol_id = rp.rol_id
+       WHERE ur.usuario_id = ? AND rp.permiso_id = ?`,
+      [userId, permissionId]
+    );
+
+    return rows[0].count > 0;
+  } catch (error) {
+    console.error("Error checking user permission:", error);
+    return false;
+  }
+}
