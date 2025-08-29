@@ -8,6 +8,7 @@ export const UserSchema = z.object({
   nombre: z.string().min(2, "El nombre es requerido."),
   apellido_p: z.string().optional(),
   password_hash: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
   rol_id: z.number().int().positive("Debes seleccionar un rol."),
 });
 

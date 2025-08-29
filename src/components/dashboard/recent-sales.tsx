@@ -41,7 +41,7 @@ export async function RecentSales() {
                     <div className="font-medium">{sale.customerName}</div>
                   </TableCell>
                   <TableCell>{sale.date}</TableCell>
-                  <TableCell className="text-right">${sale.amount.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${Number(sale.amount).toFixed(2)}</TableCell>
                 </TableRow>
               ))
             ) : (

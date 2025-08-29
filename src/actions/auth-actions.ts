@@ -22,7 +22,7 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
 
   try {
     const [rows]: any = await db.query(
-      'SELECT * FROM sec_usuarios WHERE email = ?',
+      'SELECT * FROM seg_usuarios WHERE email = ?',
       [email]
     );
 
@@ -38,7 +38,7 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
     const passwordMatch = user.password_hash === password;
 
     if (!passwordMatch) {
-      return { success: false, message: 'La contraseña es incorrecta.' };
+      return { success: false, message: 'La contraseña es incorrecta.' + user.password_hash + '\n' + password};
     }
 
     // Aquí se debería crear una sesión o token (ej. JWT, Next-Auth)
