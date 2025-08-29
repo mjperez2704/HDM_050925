@@ -31,5 +31,4 @@ export const ProductSchema = z.object({
 // TypeScript Type para el producto
 export type Product = z.infer<typeof ProductSchema> & {
   id: number;
-  activo: boolean;
 };

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ProductSchema } from "@/lib/types/product";
@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -25,7 +24,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { updateProduct } from '@/actions/products-actions';
-
 
 type ProductWithAttributes = Product & { attributes?: Record<string, string> };
 
@@ -36,7 +34,7 @@ type EditProductFormProps = {
   onProductUpdated: () => void;
 };
 
-const FormSchema = ProductSchema.omit({ activo: true });
+const FormSchema = ProductSchema;
 type FormValues = Product;
 
 export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdated }: EditProductFormProps) {
@@ -151,7 +149,7 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                             <FormField
                                 control={form.control}
-                                name="costo_promedio"
+                                name="costoPromedio"
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Costo Promedio</FormLabel>
@@ -164,7 +162,7 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
                             />
                             <FormField
                                 control={form.control}
-                                name="precio_lista"
+                                name="precioLista"
                                 render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Precio Lista</FormLabel>
@@ -181,9 +179,9 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
                             <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {Array.from({ length: 10 }).map((_, i) => (
                                 <FormField
-                                    key={`atributo-${i + 1}`}
+                                    key={`atributo${i + 1}`}
                                     control={form.control}
-                                    name={`atributo_${i + 1}` as keyof FormValues}
+                                    name={`atributo${i + 1}` as keyof FormValues}
                                     render={({ field }) => (
                                         <FormItem>
                                         <FormLabel>Atributo {i + 1}</FormLabel>
@@ -201,7 +199,7 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
                     <div className="space-y-4">
                         <FormField
                             control={form.control}
-                            name="es_serie"
+                            name="esSerie"
                             render={({ field }) => (
                                 <FormItem className="flex items-center justify-between rounded-lg border p-3">
                                     <FormLabel>Es de Serie</FormLabel>
@@ -211,10 +209,6 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
                                 </FormItem>
                             )}
                             />
-                        <div className="flex items-center justify-between rounded-lg border p-3">
-                        <Label htmlFor="inventoriable">Inventariable</Label>
-                        <Switch id="inventoriable" defaultChecked />
-                        </div>
                     </div>
                 </div>
                 </ScrollArea>

@@ -6,8 +6,8 @@ import { z } from 'zod';
 import db from '@/lib/db';
 import { ProductSchema, Product } from '@/lib/types/product';
 
-const CreateProductSchema = ProductSchema.omit({ id: true, activo: true });
-const UpdateProductSchema = ProductSchema.omit({ activo: true });
+const CreateProductSchema = ProductSchema.omit({ id: true });
+const UpdateProductSchema = ProductSchema;
 
 export async function getProducts() {
   try {
@@ -28,7 +28,7 @@ export async function getProducts() {
   }
 }
 
-export async function createProduct(formData: Omit<Product, 'id' | 'activo'>) {
+export async function createProduct(formData: Omit<Product, 'id'>) {
     const validatedFields = CreateProductSchema.safeParse(formData);
 
     if (!validatedFields.success) {
