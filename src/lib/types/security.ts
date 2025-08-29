@@ -14,6 +14,16 @@ export const CreateUserSchema = z.object({
   forcePinChange: z.boolean().default(false),
 });
 
+// Zod Schema for updating a user
+export const UpdateUserSchema = z.object({
+    id: z.number().int().positive(),
+    nombre: z.string().min(2, "El nombre es requerido."),
+    email: z.string().email("Email inválido."),
+    rol_id: z.coerce.number().int().positive("Debes seleccionar un rol."),
+    password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres.").optional().or(z.literal('')),
+});
+
+
 // Zod Schema for a user from the DB
 export const UserSchema = z.object({
   id: z.number().int().positive(),

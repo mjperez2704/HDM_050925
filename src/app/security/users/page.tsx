@@ -25,7 +25,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { getUsers, deleteUser } from '@/actions/users-actions';
+import { getUsers, deleteUser, toggleUserStatus } from '@/actions/users-actions';
 import type { UserWithRole } from '@/lib/types/security';
 import { useToast } from "@/hooks/use-toast";
 
@@ -53,7 +53,24 @@ export default function UsersPage() {
 
     const handleDeleteUser = async (id: number) => {
         const result = await deleteUser(id);
-        if (result.message.startsWith('Error')) {
+        if (!result.success) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            fetchUsers();
+        }
+    };
+    
+    const handleToggleStatus = async (user: UserWithRole) => {
+        const result = await toggleUserStatus(user.id, user.activo);
+        if (!result.success) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -132,7 +149,9 @@ export default function UsersPage() {
                                                                 <DropdownMenuItem onClick={() => setIsPinModalOpen(true)}>
                                                                     Cambiar PIN de Usuario
                                                                 </DropdownMenuItem>
-                                                                <DropdownMenuItem>Desactivar</DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
+                                                                    {user.activo ? 'Desactivar' : 'Activar'}
+                                                                </DropdownMenuItem>
                                                                 <AlertDialogTrigger asChild>
                                                                     <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
                                                                 </AlertDialogTrigger>

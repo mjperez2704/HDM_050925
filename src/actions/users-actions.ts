@@ -4,7 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import db from '@/lib/db';
-import { CreateUserSchema, UserWithRole } from '@/lib/types/security';
+import { CreateUserSchema, UpdateUserSchema, UserWithRole } from '@/lib/types/security';
 import type { UserWithId } from '@/lib/types/security';
 import type { PoolConnection } from 'mysql2/promise';
 
@@ -81,7 +81,7 @@ export async function createUser(formData: unknown) {
 
     await connection.commit();
     revalidatePath('/security/users');
-    return { message: 'Usuario creado exitosamente.' };
+    return { success: true, message: 'Usuario creado exitosamente.' };
 
   } catch (error: any) {
     if (connection) {
@@ -89,9 +89,9 @@ export async function createUser(formData: unknown) {
     }
     console.error(error);
     if (error.code === 'ER_DUP_ENTRY') {
-      return { message: 'Error: El correo electrónico o el nombre de usuario ya está registrado.' };
+      return { success: false, message: 'Error: El correo electrónico o el nombre de usuario ya está registrado.' };
     }
-    return { message: 'Error de base de datos al crear el usuario.' };
+    return { success: false, message: 'Error de base de datos al crear el usuario.' };
   } finally {
     if (connection) {
       connection.release();
@@ -99,18 +99,89 @@ export async function createUser(formData: unknown) {
   }
 }
 
+export async function updateUser(formData: unknown) {
+    const validatedFields = UpdateUserSchema.safeParse(formData);
+
+    if (!validatedFields.success) {
+        return {
+            success: false,
+            errors: validatedFields.error.flatten().fieldErrors,
+            message: 'Error de validación. Por favor, revise los campos.',
+        };
+    }
+    
+    const { id, nombre, email, rol_id, password } = validatedFields.data;
+    
+    let connection: PoolConnection | null = null;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Actualizar tabla de usuarios
+        if (password) {
+            await connection.query(
+                'UPDATE seg_usuarios SET nombre = ?, email = ?, password_hash = ? WHERE id = ?',
+                [nombre, email, password, id]
+            );
+        } else {
+            await connection.query(
+                'UPDATE seg_usuarios SET nombre = ?, email = ? WHERE id = ?',
+                [nombre, email, id]
+            );
+        }
+
+        // Actualizar tabla de roles
+        await connection.query(
+            'UPDATE seg_usuario_rol SET rol_id = ? WHERE usuario_id = ?',
+            [rol_id, id]
+        );
+
+        await connection.commit();
+        revalidatePath('/security/users');
+        return { success: true, message: 'Usuario actualizado exitosamente.' };
+
+    } catch (error: any) {
+        if (connection) {
+            await connection.rollback();
+        }
+        console.error('Error al actualizar el usuario:', error);
+        if (error.code === 'ER_DUP_ENTRY') {
+             return { success: false, message: 'Error: El correo electrónico ya está en uso por otro usuario.' };
+        }
+        return { success: false, message: 'Error de base de datos al actualizar el usuario.' };
+    } finally {
+        if (connection) {
+            connection.release();
+        }
+    }
+}
+
+
 export async function deleteUser(id: number) {
   if (!id) {
-    return { message: 'ID de usuario no proporcionado.' };
+    return { success: false, message: 'ID de usuario no proporcionado.' };
   }
+  let connection: PoolConnection | null = null;
   try {
-    await db.query('DELETE FROM seg_usuario_rol WHERE usuario_id = ?', [id]);
-    await db.query('DELETE FROM seg_usuarios WHERE id = ?', [id]);
+    connection = await db.getConnection();
+    await connection.beginTransaction();
+    
+    await connection.query('DELETE FROM seg_usuario_rol WHERE usuario_id = ?', [id]);
+    await connection.query('DELETE FROM seg_usuarios WHERE id = ?', [id]);
+
+    await connection.commit();
     revalidatePath('/security/users');
-    return { message: 'Usuario eliminado exitosamente.' };
+    return { success: true, message: 'Usuario eliminado exitosamente.' };
   } catch (error) {
+    if (connection) {
+        await connection.rollback();
+    }
     console.error(error);
-    return { message: 'Error al eliminar el usuario.' };
+    return { success: false, message: 'Error al eliminar el usuario.' };
+  } finally {
+      if (connection) {
+          connection.release();
+      }
   }
 }
 
@@ -121,5 +192,19 @@ export async function getRoles() {
     } catch (error) {
         console.error('Error fetching roles:', error);
         return [];
+    }
+}
+
+export async function toggleUserStatus(id: number, currentState: boolean) {
+    if (!id) {
+        return { success: false, message: 'ID de usuario no proporcionado.' };
+    }
+    try {
+        await db.query('UPDATE seg_usuarios SET activo = ? WHERE id = ?', [!currentState, id]);
+        revalidatePath('/security/users');
+        return { success: true, message: `Usuario ${!currentState ? 'activado' : 'desactivado'} exitosamente.` };
+    } catch (error) {
+        console.error('Error al cambiar el estado del usuario:', error);
+        return { success: false, message: 'Error al cambiar el estado del usuario.' };
     }
 }
