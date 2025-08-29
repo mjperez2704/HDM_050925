@@ -24,6 +24,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { getRolesWithDetails, deleteRole, RoleWithDetails } from '@/actions/roles-actions';
 import { ReassignAndDeleteRoleDialog } from '@/components/security/reassign-and-delete-role-dialog';
