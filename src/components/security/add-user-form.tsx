@@ -18,7 +18,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { createUser, getRoles } from '@/actions/users-actions';
 
@@ -42,6 +41,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
     defaultValues: {
       nombre: "",
       apellido_p: "",
+      username: "",
       email: "",
       password: "",
       rol_id: 0,
@@ -115,6 +115,19 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="username"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nombre de Usuario</FormLabel>
+                    <FormControl>
+                      <Input placeholder="juan.perez" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -147,7 +160,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rol</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona un rol" />
