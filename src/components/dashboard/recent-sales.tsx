@@ -13,21 +13,16 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { getRecentSales } from "@/actions/dashboard-actions";
 
-const salesData = [
-  { customer: "Olivia Martin", date: "2024-07-21", amount: "$1,999.00" },
-  { customer: "Jackson Lee", date: "2024-07-20", amount: "$329.00" },
-  { customer: "Isabella Nguyen", date: "2024-07-19", amount: "$150.00" },
-  { customer: "William Kim", date: "2024-07-18", amount: "$499.50" },
-  { customer: "Sofia Davis", date: "2024-07-17", amount: "$249.99" },
-]
+export async function RecentSales() {
+  const salesData = await getRecentSales();
 
-export function RecentSales() {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Ventas Recientes</CardTitle>
-        <CardDescription>Un resumen de tus 5 transacciones más recientes.</CardDescription>
+        <CardDescription>Un resumen de tus 5 transacciones más recientes desde la base de datos.</CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
@@ -39,15 +34,23 @@ export function RecentSales() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {salesData.map((sale, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <div className="font-medium">{sale.customer}</div>
+            {salesData.length > 0 ? (
+              salesData.map((sale, index) => (
+                <TableRow key={index}>
+                  <TableCell>
+                    <div className="font-medium">{sale.customerName}</div>
+                  </TableCell>
+                  <TableCell>{sale.date}</TableCell>
+                  <TableCell className="text-right">${sale.amount.toFixed(2)}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center">
+                  No hay ventas recientes.
                 </TableCell>
-                <TableCell>{sale.date}</TableCell>
-                <TableCell className="text-right">{sale.amount}</TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </CardContent>
