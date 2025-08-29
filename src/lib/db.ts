@@ -9,7 +9,8 @@ const pool = mysql.createPool({
   port: parseInt(process.env.DB_PORT || '3306', 10),
   waitForConnections: true,
   connectionLimit: 10,
-  queueLimit: 0
+  queueLimit: 0,
+  connectTimeout: 10000, // 10 segundos de tiempo de espera para la conexión
 });
 
 export default pool;
