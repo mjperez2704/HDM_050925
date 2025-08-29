@@ -4,6 +4,7 @@ import { z } from 'zod';
 // Zod Schema for creating a new user (from form)
 export const CreateUserSchema = z.object({
   nombre: z.string().min(2, "El nombre es requerido."),
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres."),
   apellido_p: z.string().optional(),
   email: z.string().email("Email inválido."),
   password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
@@ -13,9 +14,9 @@ export const CreateUserSchema = z.object({
 // Zod Schema for a user from the DB
 export const UserSchema = z.object({
   id: z.number().int().positive(),
-  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres.").optional(),
   email: z.string().email("Email inválido."),
   nombre: z.string().min(2, "El nombre es requerido."),
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres."),
   password_hash: z.string().min(8, "La contraseña debe tener al menos 8 caracteres."),
   rol_id: z.number().int().positive("Debes seleccionar un rol."),
   activo: z.boolean(),
@@ -29,10 +30,16 @@ export type User = z.infer<typeof UserSchema>;
 export type UserWithRole = {
   id: number;
   nombre: string;
+  username: string;
   email: string;
   rol: string;
   activo: boolean;
 };
+
+export type UserWithId = {
+  id: number;
+  username: string;
+}
 
 // Zod Schema for Roles
 export const RoleSchema = z.object({

@@ -4,23 +4,42 @@
 import { revalidatePath } from 'next/cache';
 import db from '@/lib/db';
 import { CreateUserSchema, UserWithRole } from '@/lib/types/security';
+import type { UserWithId } from '@/lib/types/security';
 
 export async function getUsers(): Promise<UserWithRole[]> {
   try {
     const [rows] = await db.query(`
-      SELECT 
-        u.id, 
-        u.nombre, 
-        u.email, 
-        r.nombre as rol, 
-        u.activo 
-      FROM seg_usuarios u
-      LEFT JOIN seg_roles r ON u.rol_id = r.id
-      ORDER BY u.id DESC
+      SELECT u.id, 
+             u.username,
+             u.nombre,
+             u.email, 
+             r.nombre as rol, 
+             u.activo 
+             FROM seg_usuarios u 
+             LEFT JOIN seg_roles r 
+             ON u.rol_id = r.id 
+             ORDER BY u.id ASC
     `);
     return rows as UserWithRole[];
   } catch (error) {
     console.error('Error fetching users:', error);
+    return [];
+  }
+}
+
+
+export async function getUserByUsername(username: string): Promise<UserWithId[]> {
+  try {
+    const [rows] = await db.query(`
+      SELECT u.id, 
+             u.username
+             FROM seg_usuarios u
+             WHERE username = ?
+    `, [username]);
+    
+    return rows as UserWithId[];
+  } catch (error) {
+    console.error('Error obteniendo el id de usuario:', error);
     return [];
   }
 }
@@ -35,7 +54,7 @@ export async function createUser(formData: unknown) {
     };
   }
 
-  const { nombre, apellido_p, email, password, rol_id } = validatedFields.data;
+  const { username, nombre, apellido_p, email, password, rol_id } = validatedFields.data;
   const fullName = apellido_p ? `${nombre} ${apellido_p}` : nombre;
   
   // NOTA: La contraseña se guarda en texto plano.
@@ -43,16 +62,23 @@ export async function createUser(formData: unknown) {
   // const hashedPassword = await bcrypt.hash(password, 10);
 
   try {
-    await db.query(
-      'INSERT INTO seg_usuarios (nombre, email, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?)',
-      [fullName, email, password, rol_id, 1]
+    const [result]: any = await db.query(
+      'INSERT INTO seg_usuarios (username, nombre, email, password_hash, rol_id, activo) VALUES (?, ?, ?, ?, ?, ?)',
+      [username, fullName, email, password, rol_id, 1]
     );
+    const userId = result.insertId;
+
+    await db.query(
+      'INSERT INTO seg_usuario_rol (usuario_id, rol_id) VALUES (?, ?)',
+      [userId, rol_id]
+    );
+
     revalidatePath('/security/users');
     return { message: 'Usuario creado exitosamente.' };
   } catch (error: any) {
     console.error(error);
     if (error.code === 'ER_DUP_ENTRY') {
-        return { message: 'Error: El correo electrónico ya está registrado.' };
+        return { message: 'Error: El correo electrónico o el nombre de usuario ya está registrado.' };
     }
     return { message: 'Error al crear el usuario.' };
   }
@@ -63,6 +89,7 @@ export async function deleteUser(id: number) {
     return { message: 'ID de usuario no proporcionado.' };
   }
   try {
+    await db.query('DELETE FROM seg_usuario_rol WHERE usuario_id = ?', [id]);
     await db.query('DELETE FROM seg_usuarios WHERE id = ?', [id]);
     revalidatePath('/security/users');
     return { message: 'Usuario eliminado exitosamente.' };
