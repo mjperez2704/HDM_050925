@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,40 +10,63 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { AddUserForm } from '@/components/security/add-user-form';
+import { EditUserForm } from '@/components/security/edit-user-form';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { PinConfirmationModal } from '@/components/security/pin-confirmation-modal';
-
-const usersData = [
-    {
-        name: 'Admin Global',
-        email: 'admin@taller.com',
-        roles: 'Administrador',
-        status: 'Activo',
-    },
-    {
-        name: 'Juan Pérez',
-        email: 'juan.perez@taller.com',
-        roles: 'Técnico',
-        status: 'Activo',
-    },
-    {
-        name: 'Ana García',
-        email: 'ana.garcia@taller.com',
-        roles: 'Ventas',
-        status: 'Activo',
-    },
-    {
-        name: 'Luisa Hernández',
-        email: 'luisa.hernandez@taller.com',
-        roles: 'Gerente',
-        status: 'Activo',
-    },
-];
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { getUsers, deleteUser } from '@/actions/users-actions';
+import type { UserWithRole } from '@/lib/types/security';
+import { useToast } from "@/hooks/use-toast";
 
 export default function UsersPage() {
+    const [usersData, setUsersData] = useState<UserWithRole[]>([]);
     const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+    const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
     const [isPinModalOpen, setIsPinModalOpen] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
+    const { toast } = useToast();
+
+    const fetchUsers = async () => {
+        const users = await getUsers();
+        setUsersData(users);
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const handleOpenEditModal = (user: UserWithRole) => {
+        setSelectedUser(user);
+        setIsEditUserModalOpen(true);
+    };
+
+    const handleDeleteUser = async (id: number) => {
+        const result = await deleteUser(id);
+        if (result.message.startsWith('Error')) {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        } else {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            fetchUsers();
+        }
+    };
 
     const handlePinConfirm = (pin: string) => {
         console.log("PIN Ingresado para cambiar PIN de usuario:", pin);
@@ -80,37 +103,59 @@ export default function UsersPage() {
                                         <TableRow>
                                             <TableHead>Nombre</TableHead>
                                             <TableHead>Email</TableHead>
-                                            <TableHead>Roles</TableHead>
+                                            <TableHead>Rol</TableHead>
                                             <TableHead>Estado</TableHead>
                                             <TableHead><span className="sr-only">Actions</span></TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
                                         {usersData.map((user) => (
-                                            <TableRow key={user.email}>
-                                                <TableCell className="font-medium">{user.name}</TableCell>
+                                            <TableRow key={user.id}>
+                                                <TableCell className="font-medium">{user.nombre}</TableCell>
                                                 <TableCell>{user.email}</TableCell>
-                                                <TableCell>{user.roles}</TableCell>
+                                                <TableCell>{user.rol}</TableCell>
                                                 <TableCell>
-                                                    <Badge variant="destructive">{user.status}</Badge>
+                                                    <Badge variant={user.activo ? 'destructive' : 'secondary'}>{user.activo ? 'Activo' : 'Inactivo'}</Badge>
                                                 </TableCell>
                                                 <TableCell className="text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                <span className="sr-only">Open menu</span>
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => setIsPinModalOpen(true)}>
-                                                                Cambiar PIN de Usuario
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem>Desactivar</DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                    <AlertDialog>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                    <span className="sr-only">Open menu</span>
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => handleOpenEditModal(user)}>Editar</DropdownMenuItem>
+                                                                <DropdownMenuItem onClick={() => setIsPinModalOpen(true)}>
+                                                                    Cambiar PIN de Usuario
+                                                                </DropdownMenuItem>
+                                                                <DropdownMenuItem>Desactivar</DropdownMenuItem>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Esta acción no se puede deshacer. Esto eliminará permanentemente el usuario.
+                                                            </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction 
+                                                                className="bg-destructive hover:bg-destructive/90"
+                                                                onClick={() => handleDeleteUser(user.id)}
+                                                            >
+                                                                Eliminar
+                                                            </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -121,7 +166,8 @@ export default function UsersPage() {
                     </main>
                 </div>
             </div>
-            <AddUserForm isOpen={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen} />
+            <AddUserForm isOpen={isAddUserModalOpen} onOpenChange={setIsAddUserModalOpen} onUserAdded={fetchUsers} />
+            <EditUserForm isOpen={isEditUserModalOpen} onOpenChange={setIsEditUserModalOpen} user={selectedUser} onUserUpdated={fetchUsers} />
             <PinConfirmationModal
                 isOpen={isPinModalOpen}
                 onOpenChange={setIsPinModalOpen}

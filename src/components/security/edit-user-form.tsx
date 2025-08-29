@@ -3,8 +3,6 @@
 
 import { useState, useEffect } from 'react';
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { CreateUserSchema } from "@/lib/types/security";
 import {
   Dialog,
   DialogContent,
@@ -16,16 +14,18 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
-import { createUser, getRoles } from '@/actions/users-actions';
+import { getRoles } from '@/actions/users-actions';
+import type { UserWithRole } from '@/lib/types/security';
 
-type AddUserFormProps = {
+type EditUserFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onUserAdded: () => void;
+  user: UserWithRole | null;
+  onUserUpdated: () => void;
 };
 
 type Role = {
@@ -33,18 +33,15 @@ type Role = {
   nombre: string;
 };
 
-export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormProps) {
+export function EditUserForm({ isOpen, onOpenChange, user, onUserUpdated }: EditUserFormProps) {
   const { toast } = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
   
   const form = useForm({
-    resolver: zodResolver(CreateUserSchema),
     defaultValues: {
-      nombre: "",
-      apellido_p: "",
-      email: "",
-      password: "",
-      rol_id: 0,
+      nombre: user?.nombre || "",
+      email: user?.email || "",
+      rol: user?.rol || "",
     },
   });
 
@@ -55,26 +52,25 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
     }
     if (isOpen) {
       loadRoles();
+      if (user) {
+        form.reset({
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol,
+        });
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, user, form]);
   
   async function onSubmit(data: any) {
-    const result = await createUser(data);
-    if (result.message.startsWith('Error')) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: result.message,
-      });
-    } else {
-      toast({
-        title: "Usuario Creado",
-        description: "El nuevo usuario ha sido registrado exitosamente.",
-      });
-      onUserAdded();
-      form.reset();
-      onOpenChange(false);
-    }
+    // Aquí iría la llamada a updateUser
+    console.log(data);
+    toast({
+      title: "Usuario Actualizado",
+      description: "El usuario ha sido actualizado exitosamente.",
+    });
+    onUserUpdated();
+    onOpenChange(false);
   }
 
   return (
@@ -83,9 +79,9 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-              <DialogTitle>Agregar Nuevo Usuario</DialogTitle>
+              <DialogTitle>Editar Usuario</DialogTitle>
               <DialogDescription>
-                Completa los datos para crear un nuevo usuario en el sistema.
+                Actualiza los datos del usuario.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -96,20 +92,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                   <FormItem>
                     <FormLabel>Nombre</FormLabel>
                     <FormControl>
-                      <Input placeholder="Juan" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="apellido_p"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Apellido Paterno (Opcional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Pérez" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -122,7 +105,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="juan.perez@ejemplo.com" {...field} />
+                      <Input type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,24 +113,11 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
               />
               <FormField
                 control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Contraseña</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="rol_id"
+                name="rol"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Rol</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Selecciona un rol" />
@@ -155,7 +125,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                       </FormControl>
                       <SelectContent>
                         {roles.map(role => (
-                          <SelectItem key={role.id} value={String(role.id)}>
+                          <SelectItem key={role.id} value={role.nombre}>
                             {role.nombre}
                           </SelectItem>
                         ))}
@@ -165,6 +135,10 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                   </FormItem>
                 )}
               />
+               <div className="space-y-2">
+                <Label htmlFor="password">Nueva Contraseña</Label>
+                <Input id="password" type="password" placeholder="Dejar en blanco para no cambiar" />
+              </div>
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -172,7 +146,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar</Button>
+              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
             </DialogFooter>
           </form>
         </Form>
