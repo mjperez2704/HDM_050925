@@ -37,8 +37,6 @@ const FormSchema = ProductSchema.omit({ id: true, activo: true });
 type FormValues = Omit<Product, 'id' | 'activo'>;
 
 export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProductFormProps) {
-  const [tieneVigencia, setTieneVigencia] = useState(false);
-  const [esParteDeKit, setEsParteDeKit] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<FormValues>({
@@ -47,11 +45,11 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
       sku: "",
       nombre: "",
       descripcion: "",
-      categoria_id: 1, // Default, you might want a selector for this
+      categoriaId: 1, // Default value for validation
       unidad: "PZA",
-      precio_lista: 0,
-      costo_promedio: 0,
-      es_serie: false,
+      precioLista: 0,
+      costoPromedio: 0,
+      esSerie: false,
     },
   });
 
@@ -130,7 +128,7 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                     )}
                   />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FormField
                           control={form.control}
                           name="unidad"
@@ -153,15 +151,35 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                           </FormItem>
                           )}
                       />
-                      <div className="space-y-2">
-                          <Label htmlFor="resupply-time">Tiempo para Resurtir (días)</Label>
-                          <Input id="resupply-time" type="number" placeholder="Ej. 15" />
-                      </div>
+                      <FormField
+                          control={form.control}
+                          name="categoriaId"
+                          render={({ field }) => (
+                          <FormItem>
+                              <FormLabel>Categoría</FormLabel>
+                                <Select onValueChange={(value) => field.onChange(Number(value))} defaultValue={String(field.value)}>
+                                <FormControl>
+                                    <SelectTrigger>
+                                    <SelectValue placeholder="Seleccione una categoría" />
+                                    </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                    {/* These would ideally come from the DB */}
+                                    <SelectItem value="1">Refacciones</SelectItem>
+                                    <SelectItem value="2">Accesorios</SelectItem>
+                                    <SelectItem value="3">Equipos</SelectItem>
+                                    <SelectItem value="4">Servicios</SelectItem>
+                                </SelectContent>
+                                </Select>
+                              <FormMessage />
+                          </FormItem>
+                          )}
+                      />
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <FormField
                         control={form.control}
-                        name="costo_promedio"
+                        name="costoPromedio"
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Costo Promedio</FormLabel>
@@ -174,7 +192,7 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                     />
                     <FormField
                         control={form.control}
-                        name="precio_lista"
+                        name="precioLista"
                         render={({ field }) => (
                         <FormItem>
                             <FormLabel>Precio Lista</FormLabel>
@@ -185,14 +203,6 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                         </FormItem>
                         )}
                     />
-                    <div className="space-y-2">
-                        <Label htmlFor="min-stock">Mínimo</Label>
-                        <Input id="min-stock" type="number" defaultValue="0" />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="max-stock">Máximo</Label>
-                        <Input id="max-stock" type="number" defaultValue="0" />
-                    </div>
                   </div>
                   
                   {/* Atributos Adicionales */}
@@ -201,9 +211,9 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                     <div className="border rounded-lg p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {Array.from({ length: 10 }).map((_, i) => (
                            <FormField
-                            key={`atributo-${i + 1}`}
+                            key={`atributo${i + 1}`}
                             control={form.control}
-                            name={`atributo_${i + 1}` as keyof FormValues}
+                            name={`atributo${i + 1}` as keyof FormValues}
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Atributo {i + 1}</FormLabel>
@@ -223,7 +233,7 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                 <div className="space-y-4">
                   <FormField
                     control={form.control}
-                    name="es_serie"
+                    name="esSerie"
                     render={({ field }) => (
                         <FormItem className="flex items-center justify-between rounded-lg border p-3">
                             <FormLabel>Es de Serie</FormLabel>
@@ -233,14 +243,6 @@ export function AddProductForm({ isOpen, onOpenChange, onProductAdded }: AddProd
                         </FormItem>
                     )}
                     />
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <Label htmlFor="inventoriable">Inventariable</Label>
-                    <Switch id="inventoriable" defaultChecked />
-                  </div>
-                  <div className="flex items-center justify-between rounded-lg border p-3">
-                    <Label htmlFor="blocked">Bloqueado (Inactivo)</Label>
-                    <Switch id="blocked" />
-                  </div>
                 </div>
               </div>
             </ScrollArea>

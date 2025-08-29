@@ -1,3 +1,4 @@
+
 // src/lib/types/product.ts
 import { z } from 'zod';
 
@@ -7,7 +8,7 @@ export const ProductSchema = z.object({
   sku: z.string().min(3, "El SKU es requerido."),
   nombre: z.string().min(3, "El nombre es requerido."),
   descripcion: z.string().optional().nullable(),
-  categoriaId: z.number().int().positive(),
+  categoriaId: z.number().int().positive("La categoría es requerida."),
   marcaId: z.number().int().positive().optional().nullable(),
   modeloId: z.number().int().positive().optional().nullable(),
   unidad: z.enum(['PZA', 'KIT', 'SRV']),
