@@ -104,7 +104,7 @@ export function EditSupplierForm({ isOpen, onOpenChange, supplier, onSupplierUpd
                     <FormItem>
                       <FormLabel>Días de Crédito</FormLabel>
                       <FormControl>
-                        <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 0)} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
