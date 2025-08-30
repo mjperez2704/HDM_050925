@@ -31,17 +31,16 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
         // Obtenemos todos los detalles de stock de una sola vez
         const [stockDetails] = await db.query<StockDetailQueryResult[]>(`
             SELECT 
-                s.id_producto,
+                c.id_producto,
                 a.nombre as almacen,
                 sec.nombre as seccion,
                 c.nombre as coordenada,
-                s.cantidad,
+                c.cantidad,
                 c.visible
-            FROM inv_stock s
-            JOIN inv_coordenadas c ON s.id_coordenada = c.id
+            FROM inv_coordenadas c
             JOIN inv_secciones sec ON c.id_seccion = sec.id
             JOIN inv_almacenes a ON sec.id_almacen = a.id
-            WHERE s.cantidad > 0
+            WHERE c.cantidad > 0 AND c.id_producto IS NOT NULL
         `);
 
         // Creamos un mapa para buscar detalles de stock eficientemente
