@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,44 +18,48 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { createModel } from "@/actions/brands-actions";
+import { updateBrand } from "@/actions/brands-actions";
+import type { BrandWithModels } from '@/actions/brands-actions';
 
-type AddModelFormProps = {
+type EditBrandFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  brandName?: string;
-  brandId?: number;
-  onModelAdded: () => void;
+  brand: BrandWithModels | null;
+  onBrandUpdated: () => void;
 };
 
 const FormSchema = z.object({
-  nombre: z.string().min(1, 'El nombre del modelo es requerido.'),
-  marca_id: z.number().int().positive('El ID de la marca es requerido.'),
+  id: z.number().int().positive(),
+  nombre: z.string().min(1, 'El nombre de la marca es requerido.'),
+  pais_origen: z.string().optional(),
 });
 
-export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModelAdded }: AddModelFormProps) {
+export function EditBrandForm({ isOpen, onOpenChange, brand, onBrandUpdated }: EditBrandFormProps) {
   const { toast } = useToast();
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      nombre: '',
-      marca_id: brandId,
-    },
   });
 
+  useEffect(() => {
+    if (brand) {
+      form.reset({
+        id: brand.id,
+        nombre: brand.nombre,
+        pais_origen: brand.pais_origen || '',
+      });
+    }
+  }, [brand, form]);
+
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const result = await createModel(data);
+    const result = await updateBrand(data);
     if (result.success) {
       toast({ title: "Éxito", description: result.message });
-      onModelAdded();
+      onBrandUpdated();
       onOpenChange(false);
     } else {
       toast({ variant: "destructive", title: "Error", description: result.message });
     }
   }
-
-  // Actualizar el valor por defecto si cambia el brandId
-  form.setValue('marca_id', brandId || 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -62,9 +67,9 @@ export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModel
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-              <DialogTitle>Agregar Nuevo Modelo</DialogTitle>
+              <DialogTitle>Editar Marca</DialogTitle>
               <DialogDescription>
-                Agregando un modelo para la marca: <span className="font-bold">{brandName}</span>
+                Actualiza los datos de la marca.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -73,13 +78,26 @@ export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModel
                 name="nombre"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nombre del Modelo</FormLabel>
+                    <FormLabel>Nombre de la Marca</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Ej. iPhone 15 Pro"
+                        placeholder="Ej. Apple"
                         className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive"
                         {...field}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="pais_origen"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>País de Origen (Opcional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ej. USA" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -92,7 +110,7 @@ export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModel
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Crear Modelo</Button>
+              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
             </DialogFooter>
           </form>
         </Form>

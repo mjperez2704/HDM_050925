@@ -1,6 +1,8 @@
 
 'use server';
 
+import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import db from '@/lib/db';
 import type { RowDataPacket } from 'mysql2';
 
@@ -31,6 +33,18 @@ interface ModelQueryResult extends RowDataPacket {
 interface CountQueryResult extends RowDataPacket {
     total: number;
 }
+
+const CreateModelSchema = z.object({
+    nombre: z.string().min(1, 'El nombre del modelo es requerido.'),
+    marca_id: z.number().int().positive('El ID de la marca es inválido.'),
+});
+
+const UpdateBrandSchema = z.object({
+    id: z.number().int().positive(),
+    nombre: z.string().min(1, 'El nombre de la marca es requerido.'),
+    pais_origen: z.string().optional(),
+});
+
 
 /**
  * Obtiene las marcas y sus modelos asociados con paginación y filtrado.
@@ -95,5 +109,44 @@ export async function getBrandsWithModels(
     } catch (error) {
         console.error('Error fetching brands with models:', error);
         return { brands: [], totalPages: 0 };
+    }
+}
+
+
+export async function createModel(formData: unknown) {
+    const validatedFields = CreateModelSchema.safeParse(formData);
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Datos inválidos.' };
+    }
+    
+    const { nombre, marca_id } = validatedFields.data;
+
+    try {
+        await db.query('INSERT INTO cat_modelos (nombre, marca_id) VALUES (?, ?)', [nombre, marca_id]);
+        revalidatePath('/brands-and-models');
+        return { success: true, message: 'Modelo creado exitosamente.' };
+    } catch (error) {
+        console.error('Error creating model:', error);
+        return { success: false, message: 'Error de base de datos al crear el modelo.' };
+    }
+}
+
+export async function updateBrand(formData: unknown) {
+    const validatedFields = UpdateBrandSchema.safeParse(formData);
+
+    if (!validatedFields.success) {
+        return { success: false, message: 'Datos inválidos.' };
+    }
+
+    const { id, nombre, pais_origen } = validatedFields.data;
+
+    try {
+        await db.query('UPDATE cat_marcas SET nombre = ?, pais_origen = ? WHERE id = ?', [nombre, pais_origen, id]);
+        revalidatePath('/brands-and-models');
+        return { success: true, message: 'Marca actualizada exitosamente.' };
+    } catch (error) {
+        console.error('Error updating brand:', error);
+        return { success: false, message: 'Error de base de datos al actualizar la marca.' };
     }
 }

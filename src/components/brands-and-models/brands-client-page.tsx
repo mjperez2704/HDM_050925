@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Edit, Trash2, Search } from 'lucide-react';
 import { AddBrandForm } from '@/components/brands-and-models/add-brand-form';
 import { AddModelForm } from '@/components/brands-and-models/add-model-form';
+import { EditBrandForm } from '@/components/brands-and-models/edit-brand-form';
 import type { BrandWithModels } from '@/actions/brands-actions';
 import { Input } from '@/components/ui/input';
 import {
@@ -29,18 +30,24 @@ type BrandsClientPageProps = {
 export function BrandsClientPage({ initialBrandsData, totalPages }: BrandsClientPageProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const { replace } = useRouter();
+  const { replace, refresh } = useRouter();
   
   const currentPage = Number(searchParams.get('page')) || 1;
 
   const [isAddBrandModalOpen, setIsAddBrandModalOpen] = useState(false);
   const [isAddModelModalOpen, setIsAddModelModalOpen] = useState(false);
-  const [selectedBrandName, setSelectedBrandName] = useState<string | undefined>(undefined);
+  const [isEditBrandModalOpen, setIsEditBrandModalOpen] = useState(false);
+  const [selectedBrand, setSelectedBrand] = useState<BrandWithModels | null>(null);
 
-  const handleOpenAddModel = (brandName: string) => {
-    setSelectedBrandName(brandName);
+  const handleOpenAddModel = (brand: BrandWithModels) => {
+    setSelectedBrand(brand);
     setIsAddModelModalOpen(true);
   };
+
+  const handleOpenEditModel = (brand: BrandWithModels) => {
+    setSelectedBrand(brand);
+    setIsEditBrandModalOpen(true);
+  }
   
   const handleSearch = (term: string) => {
     const params = new URLSearchParams(searchParams);
@@ -52,6 +59,11 @@ export function BrandsClientPage({ initialBrandsData, totalPages }: BrandsClient
     }
     replace(`${pathname}?${params.toString()}`);
   };
+
+  const handleActionSuccess = () => {
+    refresh();
+  };
+
 
   return (
     <>
@@ -114,11 +126,11 @@ export function BrandsClientPage({ initialBrandsData, totalPages }: BrandsClient
                   </div>
                 </div>
                 <div className="mt-6 flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => handleOpenAddModel(brand.nombre)}>
+                  <Button variant="outline" size="sm" onClick={() => handleOpenAddModel(brand)}>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Agregar Modelo
                   </Button>
-                  <Button variant="outline" size="sm">
+                  <Button variant="outline" size="sm" onClick={() => handleOpenEditModel(brand)}>
                     <Edit className="mr-2 h-4 w-4" />
                     Editar Marca
                   </Button>
@@ -163,7 +175,19 @@ export function BrandsClientPage({ initialBrandsData, totalPages }: BrandsClient
         </div>
       )}
       <AddBrandForm isOpen={isAddBrandModalOpen} onOpenChange={setIsAddBrandModalOpen} />
-      <AddModelForm isOpen={isAddModelModalOpen} onOpenChange={setIsAddModelModalOpen} brandName={selectedBrandName} />
+      <AddModelForm 
+        isOpen={isAddModelModalOpen} 
+        onOpenChange={setIsAddModelModalOpen} 
+        brandName={selectedBrand?.nombre}
+        brandId={selectedBrand?.id}
+        onModelAdded={handleActionSuccess}
+      />
+      <EditBrandForm
+        isOpen={isEditBrandModalOpen}
+        onOpenChange={setIsEditBrandModalOpen}
+        brand={selectedBrand}
+        onBrandUpdated={handleActionSuccess}
+       />
     </>
   );
 }
