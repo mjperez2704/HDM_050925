@@ -29,12 +29,12 @@ interface ModelQueryResult extends RowDataPacket {
 }
 
 /**
- * Obtiene todas las marcas activas y sus modelos asociados.
+ * Obtiene todas las marcas y sus modelos asociados.
  */
 export async function getBrandsWithModels(): Promise<BrandWithModels[]> {
     try {
         const [brands] = await db.query<BrandQueryResult[]>(
-            'SELECT id, nombre, pais_origen FROM cat_marcas WHERE activo = 1 ORDER BY nombre ASC'
+            'SELECT id, nombre, pais_origen FROM cat_marcas ORDER BY nombre ASC'
         );
 
         if (brands.length === 0) {
@@ -44,7 +44,7 @@ export async function getBrandsWithModels(): Promise<BrandWithModels[]> {
         const brandIds = brands.map(b => b.id);
         
         const [models] = await db.query<ModelQueryResult[]>(
-            'SELECT id, nombre, marca_id FROM cat_modelos WHERE marca_id IN (?) AND activo = 1 ORDER BY nombre ASC',
+            'SELECT id, nombre, marca_id FROM cat_modelos WHERE marca_id IN (?) ORDER BY nombre ASC',
             [brandIds]
         );
 
