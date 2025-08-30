@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Filter, Upload, MoreHorizontal, PlusCircle, CheckCircle, XCircle } from 'lucide-react';
+import { Filter, Upload, MoreHorizontal, PlusCircle, CheckCircle, XCircle, ChevronDown } from 'lucide-react';
 import { StockDetailsModal } from '@/components/inventory/stock-details-modal';
 import { cn } from '@/lib/utils';
 import { AssignSkuForm } from '@/components/inventory/assign-sku-form';
@@ -92,9 +92,8 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                         </TableHeader>
                         <TableBody>
                             {inventoryData.map((item) => {
-                                // La lógica de `visibleStock > 0` ahora se basa en el dato pre-calculado del servidor
+                                const visibleDetails = item.details.filter(d => d.visible);
                                 const hasVisibleStock = item.visibleStock > 0;
-                                const firstVisibleCoordinate = item.details.find(d => d.visible)?.coordinate || 'N/A';
                                 
                                 return (
                                     <TableRow key={item.id}>
@@ -127,7 +126,27 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                                                 </Tooltip>
                                             )}
                                         </TableCell>
-                                        <TableCell>{firstVisibleCoordinate}</TableCell>
+                                        <TableCell>
+                                            {visibleDetails.length > 1 ? (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="outline" size="sm" className="h-8">
+                                                            Múltiples <ChevronDown className="ml-2 h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="start">
+                                                        {visibleDetails.map((detail, index) => (
+                                                            <DropdownMenuItem key={index} className="flex justify-between">
+                                                                <span>{detail.coordinate}</span>
+                                                                <Badge variant="secondary">{Math.floor(detail.quantity)}</Badge>
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            ) : (
+                                                <span>{visibleDetails[0]?.coordinate || 'N/A'}</span>
+                                            )}
+                                        </TableCell>
                                         <TableCell>
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>

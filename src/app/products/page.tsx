@@ -152,7 +152,7 @@ export default function ProductsPage() {
                                                 </TableCell>
                                                 <TableCell>{product.nombre}</TableCell>
                                                 <TableCell>{product.unidad}</TableCell>
-                                                <TableCell>${product.precioLista.toFixed(2)}</TableCell>
+                                                <TableCell>${Number(product.precioLista).toFixed(2)}</TableCell>
                                                 <TableCell>
                                                     <AlertDialog>
                                                         <DropdownMenu>
