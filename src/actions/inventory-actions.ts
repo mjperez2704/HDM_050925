@@ -4,8 +4,9 @@
 import db from '@/lib/db';
 import type { Product } from '@/lib/types/product';
 import type { ProductWithStockDetails } from '@/lib/types/inventory';
+import type { RowDataPacket } from 'mysql2';
 
-type StockDetailQueryResult = {
+interface StockDetailQueryResult extends RowDataPacket {
     id_producto: number;
     almacen: string;
     seccion: string;
@@ -14,32 +15,34 @@ type StockDetailQueryResult = {
     visible: boolean;
 };
 
+interface ProductQueryResult extends RowDataPacket, Product {}
+
 /**
  * Obtiene todos los productos y su desglose de stock por coordenada.
  */
 export async function getInventoryStockDetails(): Promise<ProductWithStockDetails[]> {
     try {
         // Obtenemos todos los productos activos primero
-        const [products] = await db.query<Product[]>(`
-            SELECT 
-                p.id, p.sku, p.nombre, p.unidad, p.precio_lista as precioLista, p.costo_promedio as costoPromedio, 
-                p.es_serie as esSerie, p.descripcion, p.categoria_id as categoriaId, p.marca_id as marcaId, 
+        const [products] = await db.query<ProductQueryResult[]>(`
+            SELECT
+                p.id, p.sku, p.nombre, p.unidad, p.precio_lista as precioLista, p.costo_promedio as costoPromedio,
+                p.es_serie as esSerie, p.descripcion, p.categoria_id as categoriaId, p.marca_id as marcaId,
                 p.modelo_id as modeloId
             FROM cat_productos p WHERE p.activo = 1 ORDER BY p.nombre ASC
         `);
 
         // Obtenemos todos los detalles de stock de una sola vez
         const [stockDetails] = await db.query<StockDetailQueryResult[]>(`
-            SELECT 
+            SELECT
                 c.id_producto,
                 a.nombre as almacen,
                 sec.nombre as seccion,
                 c.nombre as coordenada,
                 c.cantidad,
                 c.visible
-            FROM inv_coordenadas c
-            JOIN inv_secciones sec ON c.id_seccion = sec.id
-            JOIN inv_almacenes a ON sec.id_almacen = a.id
+            FROM alm_coordenadas c
+            JOIN alm_secciones sec ON c.id_seccion = sec.id
+            JOIN alm_almacenes a ON sec.id_almacen = a.id
             WHERE c.cantidad > 0 AND c.id_producto IS NOT NULL
         `);
 
