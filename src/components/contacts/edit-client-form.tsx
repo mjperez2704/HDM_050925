@@ -1,7 +1,6 @@
 
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ClientSchema, ClientWithId } from '@/lib/types/client';
 import {
@@ -24,13 +23,13 @@ type EditClientFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   client: ClientWithId | null;
+  onClientUpdated: () => void;
 };
 
 const FormSchema = ClientSchema.omit({ fechaRegistro: true });
 
-export function EditClientForm({ isOpen, onOpenChange, client }: EditClientFormProps) {
+export function EditClientForm({ isOpen, onOpenChange, client, onClientUpdated }: EditClientFormProps) {
     const { toast } = useToast();
-    const router = useRouter();
     const form = useForm<ClientWithId>({
         resolver: zodResolver(FormSchema),
         defaultValues: {
@@ -51,7 +50,7 @@ export function EditClientForm({ isOpen, onOpenChange, client }: EditClientFormP
 
     async function onSubmit(data: ClientWithId) {
         const result = await updateClient(data);
-        if (result.message.startsWith('Error')) {
+        if (!result.success) {
              toast({
                 variant: "destructive",
                 title: "Error",
@@ -62,8 +61,7 @@ export function EditClientForm({ isOpen, onOpenChange, client }: EditClientFormP
                 title: "Éxito",
                 description: result.message,
             });
-            onOpenChange(false);
-            router.refresh();
+            onClientUpdated();
         }
     };
 
@@ -98,7 +96,7 @@ export function EditClientForm({ isOpen, onOpenChange, client }: EditClientFormP
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Tipo de Cliente</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Seleccione un tipo" />

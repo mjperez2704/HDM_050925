@@ -25,6 +25,7 @@ export async function createClient(formData: Omit<Client, 'id' | 'fechaRegistro'
 
     if (!validatedFields.success) {
         return {
+            success: false,
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Error de validación. Por favor, revise los campos.',
         };
@@ -38,10 +39,10 @@ export async function createClient(formData: Omit<Client, 'id' | 'fechaRegistro'
             [razonSocial, email, telefono, rfc, tipoCliente === 'final' ? 1 : tipoCliente === 'distribuidor' ? 2 : 3]
         );
         revalidatePath('/contacts/clients');
-        return { message: 'Cliente creado exitosamente.' };
+        return { success: true, message: 'Cliente creado exitosamente.' };
     } catch (error) {
         console.error(error);
-        return { message: 'Error al crear el cliente.' };
+        return { success: false, message: 'Error al crear el cliente.' };
     }
 }
 
@@ -50,6 +51,7 @@ export async function updateClient(formData: ClientWithId) {
 
     if (!validatedFields.success) {
         return {
+            success: false,
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Error de validación. Por favor, revise los campos.',
         };
@@ -63,23 +65,23 @@ export async function updateClient(formData: ClientWithId) {
             [razonSocial, email, telefono, rfc, tipoCliente === 'final' ? 1 : tipoCliente === 'distribuidor' ? 2 : 3, id]
         );
         revalidatePath('/contacts/clients');
-        return { message: 'Cliente actualizado exitosamente.' };
+        return { success: true, message: 'Cliente actualizado exitosamente.' };
     } catch (error) {
         console.error(error);
-        return { message: 'Error al actualizar el cliente.' };
+        return { success: false, message: 'Error al actualizar el cliente.' };
     }
 }
 
 export async function deleteClient(id: number) {
   if (!id) {
-    return { message: 'ID de cliente no proporcionado.' };
+    return { success: false, message: 'ID de cliente no proporcionado.' };
   }
   try {
     await db.query('DELETE FROM cli_clientes WHERE id = ?', [id]);
     revalidatePath('/contacts/clients');
-    return { message: 'Cliente eliminado exitosamente.' };
+    return { success: true, message: 'Cliente eliminado exitosamente.' };
   } catch (error) {
     console.error(error);
-    return { message: 'Error al eliminar el cliente.' };
+    return { success: false, message: 'Error al eliminar el cliente.' };
   }
 }

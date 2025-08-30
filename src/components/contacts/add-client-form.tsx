@@ -18,18 +18,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { createClient } from "@/actions/clients-actions";
-import { useRouter } from "next/navigation";
 
 type AddClientFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  onClientAdded: () => void;
 };
 
 const FormSchema = ClientSchema.omit({ id: true, fechaRegistro: true });
 
-export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
+export function AddClientForm({ isOpen, onOpenChange, onClientAdded }: AddClientFormProps) {
   const { toast } = useToast();
-  const router = useRouter();
   const form = useForm<Omit<Client, 'id' | 'fechaRegistro'>>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -43,7 +42,7 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
 
   async function onSubmit(data: Omit<Client, 'id' | 'fechaRegistro'>) {
     const result = await createClient(data);
-    if (result.message.startsWith('Error')) {
+    if (!result.success) {
       toast({
         variant: "destructive",
         title: "Error",
@@ -54,9 +53,8 @@ export function AddClientForm({ isOpen, onOpenChange }: AddClientFormProps) {
         title: "Cliente Creado",
         description: "El nuevo cliente ha sido registrado exitosamente.",
       });
-      onOpenChange(false);
+      onClientAdded();
       form.reset();
-      router.refresh(); 
     }
   }
 

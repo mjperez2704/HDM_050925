@@ -15,6 +15,18 @@ import { EditClientForm } from '@/components/contacts/edit-client-form';
 import { getClients, deleteClient } from '@/actions/clients-actions';
 import type { ClientWithId } from '@/lib/types/client';
 import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+
 
 export default function ClientsPage() {
     const [clientsData, setClientsData] = useState<ClientWithId[]>([]);
@@ -23,11 +35,12 @@ export default function ClientsPage() {
     const [selectedClient, setSelectedClient] = useState<ClientWithId | null>(null);
     const { toast } = useToast();
 
+    const fetchClients = async () => {
+        const clients = await getClients();
+        setClientsData(clients as ClientWithId[]);
+    };
+
     useEffect(() => {
-        const fetchClients = async () => {
-            const clients = await getClients();
-            setClientsData(clients as ClientWithId[]);
-        };
         fetchClients();
     }, []);
 
@@ -38,7 +51,7 @@ export default function ClientsPage() {
     
     const handleDeleteClient = async (id: number) => {
         const result = await deleteClient(id);
-        if (result.message.startsWith('Error')) {
+        if (!result.success) {
             toast({
                 variant: "destructive",
                 title: "Error",
@@ -49,11 +62,19 @@ export default function ClientsPage() {
                 title: "Éxito",
                 description: result.message,
             });
-            // Refrescar la lista de clientes
-            const clients = await getClients();
-            setClientsData(clients as ClientWithId[]);
+            fetchClients();
         }
     };
+    
+    const handleClientAdded = () => {
+        fetchClients();
+        setIsAddClientModalOpen(false);
+    }
+    
+    const handleClientUpdated = () => {
+        fetchClients();
+        setIsEditClientModalOpen(false);
+    }
 
     return (
         <SidebarProvider>
@@ -99,24 +120,42 @@ export default function ClientsPage() {
                                                 <TableCell>{client.rfc}</TableCell>
                                                 <TableCell>{new Date(client.fechaRegistro).toLocaleDateString()}</TableCell>
                                                 <TableCell className="text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                <span className="sr-only">Open menu</span>
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                                                            <DropdownMenuItem onClick={() => handleOpenEditModal(client)}>Editar</DropdownMenuItem>
-                                                            <DropdownMenuItem 
-                                                                className="text-destructive"
+                                                    <AlertDialog>
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                                    <span className="sr-only">Open menu</span>
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end">
+                                                                <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                                                                <DropdownMenuItem onClick={() => handleOpenEditModal(client)}>Editar</DropdownMenuItem>
+                                                                <AlertDialogTrigger asChild>
+                                                                    <DropdownMenuItem className="text-destructive">
+                                                                        Eliminar
+                                                                    </DropdownMenuItem>
+                                                                </AlertDialogTrigger>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                            <AlertDialogDescription>
+                                                                Esta acción no se puede deshacer. Esto eliminará permanentemente al cliente.
+                                                            </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                            <AlertDialogAction 
+                                                                className="bg-destructive hover:bg-destructive/90"
                                                                 onClick={() => handleDeleteClient(client.id)}
                                                             >
                                                                 Eliminar
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
+                                                            </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
                                                 </TableCell>
                                             </TableRow>
                                         ))}
@@ -127,8 +166,8 @@ export default function ClientsPage() {
                     </main>
                 </div>
             </div>
-            <AddClientForm isOpen={isAddClientModalOpen} onOpenChange={setIsAddClientModalOpen} />
-            <EditClientForm isOpen={isEditClientModalOpen} onOpenChange={setIsEditClientModalOpen} client={selectedClient} />
+            <AddClientForm isOpen={isAddClientModalOpen} onOpenChange={setIsAddClientModalOpen} onClientAdded={handleClientAdded} />
+            <EditClientForm isOpen={isEditClientModalOpen} onOpenChange={setIsEditClientModalOpen} client={selectedClient} onClientUpdated={handleClientUpdated} />
         </SidebarProvider>
     );
 }
