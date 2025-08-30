@@ -95,3 +95,36 @@ export async function getHistoricalSalesData(): Promise<string> {
         return "Fecha,Ventas\n";
     }
 }
+
+export type SalesTrendData = {
+    month: string;
+    sales: number;
+}[];
+
+export async function getSalesTrendData(): Promise<SalesTrendData> {
+    try {
+        const [rows]: any = await db.query(`
+            SELECT 
+                DATE_FORMAT(fecha, '%Y-%m') as month,
+                SUM(total) as totalSales
+            FROM ven_ventas
+            WHERE fecha >= DATE_SUB(NOW(), INTERVAL 6 MONTH) AND estado = 'PAGADA'
+            GROUP BY DATE_FORMAT(fecha, '%Y-%m')
+            ORDER BY month ASC
+        `);
+
+        const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+        return rows.map((row: any) => {
+            const [year, monthIndex] = row.month.split('-');
+            return {
+                month: monthNames[parseInt(monthIndex, 10) - 1],
+                sales: row.totalSales,
+            };
+        });
+
+    } catch (error) {
+        console.error('Error fetching sales trend data:', error);
+        return [];
+    }
+}

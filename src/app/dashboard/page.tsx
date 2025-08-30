@@ -8,8 +8,11 @@ import { TopBrandsChart } from '@/components/dashboard/top-brands-chart';
 import { PredictiveAnalysis } from '@/components/dashboard/predictive-analysis';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { getSalesTrendData } from '@/actions/dashboard-actions';
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const salesTrendData = await getSalesTrendData();
+
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-muted/40">
@@ -20,7 +23,7 @@ export default function DashboardPage() {
             <MetricsCards />
             <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
               <div className="xl:col-span-2">
-                <SalesChart />
+                <SalesChart data={salesTrendData} />
               </div>
               <div className="flex items-stretch">
                 <ExpenseChart />

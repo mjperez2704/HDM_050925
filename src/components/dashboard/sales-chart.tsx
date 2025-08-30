@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
@@ -15,15 +16,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-const chartData = [
-  { month: "Enero", sales: 1860 },
-  { month: "Febrero", sales: 3050 },
-  { month: "Marzo", sales: 2370 },
-  { month: "Abril", sales: 730 },
-  { month: "Mayo", sales: 2090 },
-  { month: "Junio", sales: 2140 },
-]
+import type { SalesTrendData } from "@/actions/dashboard-actions"
 
 const chartConfig = {
   sales: {
@@ -32,7 +25,11 @@ const chartConfig = {
   },
 } satisfies ChartConfig
 
-export function SalesChart() {
+type SalesChartProps = {
+  data: SalesTrendData;
+};
+
+export function SalesChart({ data }: SalesChartProps) {
   return (
     <Card>
       <CardHeader>
@@ -43,7 +40,7 @@ export function SalesChart() {
         <ChartContainer config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               left: 12,
               right: 12,
