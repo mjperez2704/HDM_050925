@@ -64,3 +64,34 @@ export async function getRecentSales(): Promise<RecentSale[]> {
     return [];
   }
 }
+
+
+export async function getHistoricalSalesData(): Promise<string> {
+    try {
+        const [rows]: any = await db.query(`
+            SELECT 
+                DATE(fecha) as salesDate, 
+                SUM(total) as totalSales
+            FROM ven_ventas
+            WHERE estado = 'PAGADA'
+            GROUP BY DATE(fecha)
+            ORDER BY salesDate ASC
+            LIMIT 100
+        `);
+
+        if (rows.length === 0) {
+            return "Fecha,Ventas\n";
+        }
+
+        const csvHeader = "Fecha,Ventas\n";
+        const csvRows = rows.map((row: any) => {
+            const date = new Date(row.salesDate).toISOString().split('T')[0];
+            return `${date},${row.totalSales}`;
+        });
+
+        return csvHeader + csvRows.join('\n');
+    } catch (error) {
+        console.error('Error fetching historical sales data:', error);
+        return "Fecha,Ventas\n";
+    }
+}
