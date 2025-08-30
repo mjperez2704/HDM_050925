@@ -15,14 +15,17 @@ export async function getSuppliers() {
         id, 
         razon_social as razonSocial, 
         rfc,
-        dias_credito as diasCredito,
-        tipo, 
-        origen,
-        persona_contacto as personaContacto,
         email, 
         telefono,
-        direccion
-      FROM pro_proveedores 
+        whatsapp,
+        direccion,
+        ciudad,
+        estado,
+        pais,
+        cp,
+        dias_credito as diasCredito
+      FROM prv_proveedores 
+      WHERE deleted_at IS NULL
       ORDER BY id DESC
     `);
     return rows as Supplier[];
@@ -43,12 +46,12 @@ export async function createSupplier(formData: Omit<Supplier, 'id'>) {
         };
     }
 
-    const { razonSocial, rfc, diasCredito, tipo, origen, personaContacto, email, telefono, direccion } = validatedFields.data;
+    const { razonSocial, rfc, email, telefono, whatsapp, direccion, ciudad, estado, pais, cp, diasCredito } = validatedFields.data;
 
     try {
         await db.query(
-            'INSERT INTO pro_proveedores (razon_social, rfc, dias_credito, tipo, origen, persona_contacto, email, telefono, direccion) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [razonSocial, rfc, diasCredito, tipo, origen, personaContacto, email, telefono, direccion]
+            'INSERT INTO prv_proveedores (razon_social, rfc, email, telefono, whatsapp, direccion, ciudad, estado, pais, cp, dias_credito) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [razonSocial, rfc, email, telefono, whatsapp, direccion, ciudad, estado, pais, cp, diasCredito]
         );
         revalidatePath('/contacts/suppliers');
         return { success: true, message: 'Proveedor creado exitosamente.' };
@@ -69,12 +72,12 @@ export async function updateSupplier(formData: Supplier) {
         };
     }
     
-    const { id, razonSocial, rfc, diasCredito, tipo, origen, personaContacto, email, telefono, direccion } = validatedFields.data;
+    const { id, razonSocial, rfc, email, telefono, whatsapp, direccion, ciudad, estado, pais, cp, diasCredito } = validatedFields.data;
 
     try {
         await db.query(
-            'UPDATE pro_proveedores SET razon_social = ?, rfc = ?, dias_credito = ?, tipo = ?, origen = ?, persona_contacto = ?, email = ?, telefono = ?, direccion = ? WHERE id = ?',
-            [razonSocial, rfc, diasCredito, tipo, origen, personaContacto, email, telefono, direccion, id]
+            'UPDATE prv_proveedores SET razon_social = ?, rfc = ?, email = ?, telefono = ?, whatsapp = ?, direccion = ?, ciudad = ?, estado = ?, pais = ?, cp = ?, dias_credito = ? WHERE id = ?',
+            [razonSocial, rfc, email, telefono, whatsapp, direccion, ciudad, estado, pais, cp, diasCredito, id]
         );
         revalidatePath('/contacts/suppliers');
         return { success: true, message: 'Proveedor actualizado exitosamente.' };
@@ -89,7 +92,8 @@ export async function deleteSupplier(id: number) {
     return { success: false, message: 'ID de proveedor no proporcionado.' };
   }
   try {
-    await db.query('DELETE FROM pro_proveedores WHERE id = ?', [id]);
+    // Soft delete by setting deleted_at
+    await db.query('UPDATE prv_proveedores SET deleted_at = NOW() WHERE id = ?', [id]);
     revalidatePath('/contacts/suppliers');
     return { success: true, message: 'Proveedor eliminado exitosamente.' };
   } catch (error) {

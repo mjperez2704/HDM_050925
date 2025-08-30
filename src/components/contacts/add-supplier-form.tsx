@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { createSupplier } from "@/actions/suppliers-actions";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 type AddSupplierFormProps = {
   isOpen: boolean;
@@ -35,13 +35,15 @@ export function AddSupplierForm({ isOpen, onOpenChange, onSupplierAdded }: AddSu
     defaultValues: {
       razonSocial: "",
       rfc: "",
-      diasCredito: 0,
-      tipo: "Productos",
-      origen: "Nacional",
-      personaContacto: "",
       email: "",
       telefono: "",
+      whatsapp: "",
       direccion: "",
+      ciudad: "",
+      estado: "",
+      pais: "",
+      cp: "",
+      diasCredito: 0,
     }
   });
 
@@ -65,7 +67,7 @@ export function AddSupplierForm({ isOpen, onOpenChange, onSupplierAdded }: AddSu
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-2xl">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -74,100 +76,50 @@ export function AddSupplierForm({ isOpen, onOpenChange, onSupplierAdded }: AddSu
                 Completa los campos para registrar un nuevo proveedor.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-6 py-4">
-              <FormField
-                control={form.control}
-                name="razonSocial"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Razón Social</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. Partes Express S.A. de C.V." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
+            <ScrollArea className="max-h-[70vh] p-4">
+              <div className="space-y-4">
                 <FormField
                   control={form.control}
-                  name="rfc"
+                  name="razonSocial"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>RFC</FormLabel>
+                      <FormLabel>Razón Social</FormLabel>
                       <FormControl>
-                        <Input placeholder="Registro Federal de Contribuyentes" {...field} />
+                        <Input placeholder="Ej. Partes Express S.A. de C.V." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="rfc"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>RFC</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Registro Federal de Contribuyentes" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="diasCredito"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Días de Crédito</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
-                  control={form.control}
-                  name="diasCredito"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Días de Crédito</FormLabel>
-                      <FormControl>
-                        <Input type="number" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="tipo"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tipo de Proveedor</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="Productos">Productos</SelectItem>
-                          <SelectItem value="Servicios">Servicios</SelectItem>
-                          <SelectItem value="Mixto">Mixto</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="origen"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Origen</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
-                        <SelectContent>
-                          <SelectItem value="Nacional">Nacional</SelectItem>
-                          <SelectItem value="Internacional">Internacional</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <FormField
-                control={form.control}
-                name="personaContacto"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Persona de Contacto</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. Juan Pérez" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-4">
-                 <FormField
                   control={form.control}
                   name="email"
                   render={({ field }) => (
@@ -180,35 +132,106 @@ export function AddSupplierForm({ isOpen, onOpenChange, onSupplierAdded }: AddSu
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="telefono"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Teléfono</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="Ej. 55 1234 5678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="whatsapp"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>WhatsApp</FormLabel>
+                        <FormControl>
+                          <Input type="tel" placeholder="Ej. 55 1234 5678" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <FormField
-                  control={form.control}
-                  name="telefono"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Teléfono</FormLabel>
-                      <FormControl>
-                        <Input type="tel" placeholder="Ej. 55 1234 5678" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-               <FormField
                   control={form.control}
                   name="direccion"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Dirección</FormLabel>
                       <FormControl>
-                        <Textarea placeholder="Calle, número, colonia, ciudad, etc." {...field} />
+                        <Textarea placeholder="Calle, número, colonia..." {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-            </div>
-            <DialogFooter>
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="ciudad"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Ciudad</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="estado"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                   <FormField
+                    control={form.control}
+                    name="pais"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>País</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="cp"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Código Postal</FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </ScrollArea>
+            <DialogFooter className="pt-4">
               <DialogClose asChild>
                 <Button type="button" variant="ghost" onClick={() => { form.reset(); onOpenChange(false); }}>
                   Cancelar

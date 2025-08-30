@@ -104,8 +104,8 @@ export default function SuppliersPage() {
                                         <TableRow>
                                             <TableHead>Razón Social</TableHead>
                                             <TableHead>Email</TableHead>
-                                            <TableHead>Tipo</TableHead>
-                                            <TableHead>Origen</TableHead>
+                                            <TableHead>Teléfono</TableHead>
+                                            <TableHead>RFC</TableHead>
                                             <TableHead><span className="sr-only">Actions</span></TableHead>
                                         </TableRow>
                                     </TableHeader>
@@ -114,8 +114,8 @@ export default function SuppliersPage() {
                                             <TableRow key={supplier.id}>
                                                 <TableCell className="font-medium">{supplier.razonSocial}</TableCell>
                                                 <TableCell>{supplier.email}</TableCell>
-                                                <TableCell>{supplier.tipo}</TableCell>
-                                                <TableCell>{supplier.origen}</TableCell>
+                                                <TableCell>{supplier.telefono}</TableCell>
+                                                <TableCell>{supplier.rfc}</TableCell>
                                                 <TableCell className="text-right">
                                                     <AlertDialog>
                                                         <DropdownMenu>
