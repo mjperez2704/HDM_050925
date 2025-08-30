@@ -19,10 +19,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import type { Product } from '@/lib/types/product';
+import type { ProductWithStock } from '@/lib/types/inventory';
 
 type InventoryClientPageProps = {
-    initialInventoryData: Product[];
+    initialInventoryData: ProductWithStock[];
     hasTotalStockPermission: boolean;
 };
 
@@ -31,14 +31,14 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
     const [inventoryData, setInventoryData] = useState(initialInventoryData);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
-    const [selectedItem, setSelectedItem] = useState<Product | null>(null);
+    const [selectedItem, setSelectedItem] = useState<ProductWithStock | null>(null);
 
-    const handleOpenDetails = (item: Product) => {
+    const handleOpenDetails = (item: ProductWithStock) => {
         setSelectedItem(item);
         setIsDetailsModalOpen(true);
     };
 
-    const handleOpenAssignSku = (item: Product) => {
+    const handleOpenAssignSku = (item: ProductWithStock) => {
         setSelectedItem(item);
         setIsAssignSkuModalOpen(true);
     };
@@ -46,14 +46,6 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
     const handleAddMovement = () => {
         router.push('/inventory/adjustments');
     };
-    
-    // Simulación de detalles de coordenadas para cálculo de stock visible
-    const getMockStockDetails = (sku: string) => {
-        if (sku.includes('IP15')) return [{ quantity: 10, visible: true }, { quantity: 5, visible: false }];
-        if (sku.includes('USBC')) return [{ quantity: 200, visible: true }];
-        if (sku.includes('S24')) return [{ quantity: 0, visible: true }];
-        return [];
-    }
 
     return (
         <TooltipProvider>
@@ -100,13 +92,8 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                         </TableHeader>
                         <TableBody>
                             {inventoryData.map((item) => {
-                                // Lógica de cálculo de stock visible
-                                const mockDetails = getMockStockDetails(item.sku);
-                                const visibleStock = mockDetails
-                                    .filter(detail => detail.visible)
-                                    .reduce((sum, detail) => sum + detail.quantity, 0);
-                                const hasVisibleStock = visibleStock > 0;
-                                const firstVisibleCoordinate = 'N/A'; // Dato simulado
+                                const hasVisibleStock = item.visibleStock > 0;
+                                const firstVisibleCoordinate = item.details.find(d => d.visible)?.coordinate || 'N/A';
                                 
                                 return (
                                     <TableRow key={item.id}>
@@ -123,7 +110,7 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                                                     )}
                                                     onClick={() => handleOpenDetails(item)}
                                                 >
-                                                    {visibleStock}
+                                                    {item.visibleStock}
                                                 </Badge>
                                             ) : (
                                                 <Tooltip>
@@ -161,7 +148,7 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                         </TableBody>
                     </Table>
                     <div className="pt-4 text-sm text-muted-foreground">
-                        Mostrando 1-{inventoryData.length} de {inventoryData.length} productos
+                        Mostrando {inventoryData.length} de {inventoryData.length} productos
                     </div>
                 </CardContent>
             </Card>
@@ -169,7 +156,7 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                 <StockDetailsModal 
                     isOpen={isDetailsModalOpen} 
                     onOpenChange={setIsDetailsModalOpen}
-                    item={selectedItem as any} // Ajuste temporal mientras no hay datos reales de coordenadas
+                    item={selectedItem}
                 />
             )}
              <AssignSkuForm 
