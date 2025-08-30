@@ -10,7 +10,21 @@ const UpdateSupplierSchema = SupplierSchema;
 
 export async function getSuppliers() {
   try {
-    const [rows] = await db.query('SELECT id, razon_social as razonSocial, email, tipo, origen FROM pro_proveedores ORDER BY id DESC');
+    const [rows] = await db.query(`
+      SELECT 
+        id, 
+        razon_social as razonSocial, 
+        rfc,
+        dias_credito as diasCredito,
+        tipo, 
+        origen,
+        persona_contacto as personaContacto,
+        email, 
+        telefono,
+        direccion
+      FROM pro_proveedores 
+      ORDER BY id DESC
+    `);
     return rows as Supplier[];
   } catch (error) {
     console.error('Error fetching suppliers:', error);
