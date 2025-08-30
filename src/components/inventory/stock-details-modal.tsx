@@ -22,6 +22,7 @@ type StockDetailsModalProps = {
 export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsModalProps) {
   if (!item) return null;
   
+  // El cálculo ahora se hace con los datos reales que vienen del servidor
   const totalStock = item.details.reduce((sum, detail) => sum + detail.quantity, 0);
 
   return (

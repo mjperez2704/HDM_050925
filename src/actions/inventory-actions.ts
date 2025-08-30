@@ -19,6 +19,7 @@ type StockDetailQueryResult = {
  */
 export async function getInventoryStockDetails(): Promise<ProductWithStockDetails[]> {
     try {
+        // Obtenemos todos los productos activos primero
         const [products] = await db.query<Product[]>(`
             SELECT 
                 p.id, p.sku, p.nombre, p.unidad, p.precio_lista as precioLista, p.costo_promedio as costoPromedio, 
@@ -27,6 +28,7 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
             FROM cat_productos p WHERE p.activo = 1 ORDER BY p.nombre ASC
         `);
 
+        // Obtenemos todos los detalles de stock de una sola vez
         const [stockDetails] = await db.query<StockDetailQueryResult[]>(`
             SELECT 
                 s.id_producto,
@@ -42,30 +44,31 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
             WHERE s.cantidad > 0
         `);
 
-        // Mapear los detalles del stock a cada producto
-        const productMap = new Map<number, ProductWithStockDetails>();
-
-        products.forEach(product => {
-            productMap.set(product.id, {
-                ...product,
-                details: []
-            });
-        });
-
+        // Creamos un mapa para buscar detalles de stock eficientemente
+        const stockDetailsMap = new Map<number, StockDetailQueryResult[]>();
         stockDetails.forEach(detail => {
-            const product = productMap.get(detail.id_producto);
-            if (product) {
-                product.details.push({
-                    warehouse: detail.almacen,
-                    section: detail.seccion,
-                    coordinate: detail.coordenada,
-                    quantity: detail.cantidad,
-                    visible: !!detail.visible // Convertir 0/1 a booleano
-                });
+            if (!stockDetailsMap.has(detail.id_producto)) {
+                stockDetailsMap.set(detail.id_producto, []);
             }
+            stockDetailsMap.get(detail.id_producto)!.push(detail);
         });
 
-        return Array.from(productMap.values());
+        // Mapeamos los detalles del stock a cada producto
+        const results: ProductWithStockDetails[] = products.map(product => {
+            const detailsForProduct = stockDetailsMap.get(product.id) || [];
+            return {
+                ...product,
+                details: detailsForProduct.map(d => ({
+                    warehouse: d.almacen,
+                    section: d.seccion,
+                    coordinate: d.coordenada,
+                    quantity: d.cantidad,
+                    visible: !!d.visible // Convertir 0/1 a booleano
+                }))
+            };
+        });
+        
+        return results;
 
     } catch (error) {
         console.error('Error fetching inventory stock details:', error);

@@ -92,6 +92,7 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                         </TableHeader>
                         <TableBody>
                             {inventoryData.map((item) => {
+                                // La lógica de `visibleStock > 0` ahora se basa en el dato pre-calculado del servidor
                                 const hasVisibleStock = item.visibleStock > 0;
                                 const firstVisibleCoordinate = item.details.find(d => d.visible)?.coordinate || 'N/A';
                                 
