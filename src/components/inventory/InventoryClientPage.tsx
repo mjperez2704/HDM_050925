@@ -111,7 +111,7 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                                                     )}
                                                     onClick={() => handleOpenDetails(item)}
                                                 >
-                                                    {item.visibleStock}
+                                                    {Math.floor(item.visibleStock)}
                                                 </Badge>
                                             ) : (
                                                 <Tooltip>
