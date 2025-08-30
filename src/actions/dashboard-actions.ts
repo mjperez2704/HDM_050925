@@ -128,3 +128,28 @@ export async function getSalesTrendData(): Promise<SalesTrendData> {
         return [];
     }
 }
+
+export type TopBrandsData = {
+    brand: string;
+    sales: number;
+}[];
+
+export async function getTopBrandsBySales(): Promise<TopBrandsData> {
+    try {
+        const [rows]: any = await db.query(`
+            SELECT 
+                m.nombre as brand,
+                COUNT(vd.id) as sales
+            FROM ven_ventas_det vd
+            JOIN cat_productos p ON vd.producto_id = p.id
+            JOIN cat_marcas m ON p.marca_id = m.id
+            GROUP BY m.nombre
+            ORDER BY sales DESC
+            LIMIT 5
+        `);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching top brands by sales:', error);
+        return [];
+    }
+}

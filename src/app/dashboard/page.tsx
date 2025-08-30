@@ -8,10 +8,11 @@ import { TopBrandsChart } from '@/components/dashboard/top-brands-chart';
 import { PredictiveAnalysis } from '@/components/dashboard/predictive-analysis';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { getSalesTrendData } from '@/actions/dashboard-actions';
+import { getSalesTrendData, getTopBrandsBySales } from '@/actions/dashboard-actions';
 
 export default async function DashboardPage() {
   const salesTrendData = await getSalesTrendData();
+  const topBrandsData = await getTopBrandsBySales();
 
   return (
     <SidebarProvider>
@@ -34,7 +35,7 @@ export default async function DashboardPage() {
                 <RecentSales />
               </div>
               <div>
-                <TopBrandsChart />
+                <TopBrandsChart data={topBrandsData} />
               </div>
             </div>
             <div className="grid gap-4">

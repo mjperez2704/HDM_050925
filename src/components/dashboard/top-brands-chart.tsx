@@ -15,32 +15,29 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-const chartData = [
-  { brand: "Apple", repairs: 186 },
-  { brand: "Samsung", repairs: 305 },
-  { brand: "Google", repairs: 237 },
-  { brand: "Huawei", repairs: 73 },
-  { brand: "OnePlus", repairs: 209 },
-]
+import type { TopBrandsData } from "@/actions/dashboard-actions"
 
 const chartConfig = {
-  repairs: {
-    label: "Reparaciones",
-    color: "hsl(var(--accent))",
+  sales: {
+    label: "Ventas",
+    color: "hsl(var(--primary))",
   },
 } satisfies ChartConfig
 
-export function TopBrandsChart() {
+type TopBrandsChartProps = {
+    data: TopBrandsData;
+};
+
+export function TopBrandsChart({ data }: TopBrandsChartProps) {
   return (
     <Card>
       <CardHeader>
         <CardTitle>Análisis de Marcas Populares</CardTitle>
-        <CardDescription>Top 5 de marcas de móviles más reparadas</CardDescription>
+        <CardDescription>Top 5 de marcas con más productos vendidos</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={data}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="brand"
@@ -52,7 +49,7 @@ export function TopBrandsChart() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="repairs" fill="var(--color-repairs)" radius={8} />
+            <Bar dataKey="sales" fill="var(--color-sales)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>
