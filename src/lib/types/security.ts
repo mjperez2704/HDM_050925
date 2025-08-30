@@ -61,8 +61,8 @@ export type UserWithId = {
 // Zod Schema for Roles
 export const RoleSchema = z.object({
   id: z.number().int().positive(),
-  nombre: z.string().min(3, "El nombre del rol es requerido."),
-  descripcion: z.string().optional().nullable(),
+  name: z.string().min(3, "El nombre del rol es requerido."),
+  description: z.string().optional().nullable(),
 });
 
 export type Role = z.infer<typeof RoleSchema>;

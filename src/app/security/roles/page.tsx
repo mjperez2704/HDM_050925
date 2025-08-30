@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { EditPermissionForm } from '@/components/security/edit-permission-form';
+import { EditRoleForm } from '@/components/security/edit-role-form';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -44,6 +45,7 @@ type Permission = typeof permissionsData[0];
 export default function RolesPage() {
     const [rolesData, setRolesData] = useState<RoleWithDetails[]>([]);
     const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
+    const [isEditRoleModalOpen, setIsEditRoleModalOpen] = useState(false);
     const [isAddPermissionModalOpen, setIsAddPermissionModalOpen] = useState(false);
     const [isEditPermissionModalOpen, setIsEditPermissionModalOpen] = useState(false);
     const [isReassignDialogOpen, setIsReassignDialogOpen] = useState(false);
@@ -60,6 +62,16 @@ export default function RolesPage() {
     useEffect(() => {
         fetchRoles();
     }, []);
+    
+    const handleRoleUpdated = () => {
+        fetchRoles();
+        setIsEditRoleModalOpen(false);
+    };
+
+    const handleOpenEditRoleModal = (role: RoleWithDetails) => {
+        setSelectedRole(role);
+        setIsEditRoleModalOpen(true);
+    };
 
     const handleOpenEditPermissionModal = (permission: Permission) => {
         setSelectedPermission(permission);
@@ -134,7 +146,7 @@ export default function RolesPage() {
                                                     <h4 className="text-sm font-semibold">Usuarios Activos en este Rol: {role.usersCount}</h4>
                                                 </div>
                                                 <div className="flex justify-end items-center gap-4 mt-6 pt-4 border-t">
-                                                    <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                                                    <Button variant="ghost" size="sm" className="flex items-center gap-2" onClick={() => handleOpenEditRoleModal(role)}>
                                                         <Edit className="h-4 w-4" />
                                                         Editar
                                                     </Button>
@@ -233,6 +245,7 @@ export default function RolesPage() {
                 </div>
             </div>
             <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} onRoleAdded={fetchRoles} />
+            <EditRoleForm isOpen={isEditRoleModalOpen} onOpenChange={setIsEditRoleModalOpen} role={selectedRole} onRoleUpdated={handleRoleUpdated} />
             <AddPermissionForm isOpen={isAddPermissionModalOpen} onOpenChange={setIsAddPermissionModalOpen} />
             <EditPermissionForm isOpen={isEditPermissionModalOpen} onOpenChange={setIsEditPermissionModalOpen} permission={selectedPermission} />
              {selectedRole && (

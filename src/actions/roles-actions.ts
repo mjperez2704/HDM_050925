@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import db from '@/lib/db';
 import type { PoolConnection } from 'mysql2/promise';
+import type { Role, Permission } from '@/lib/types/security';
 
 export type RoleWithDetails = {
     id: number;
@@ -11,6 +12,7 @@ export type RoleWithDetails = {
     description: string;
     permissionsCount: number;
     usersCount: number;
+    permissions?: Permission[];
 };
 
 export async function getRolesWithDetails(): Promise<RoleWithDetails[]> {
@@ -31,6 +33,31 @@ export async function getRolesWithDetails(): Promise<RoleWithDetails[]> {
         return [];
     }
 }
+
+export async function getRoleById(roleId: number): Promise<RoleWithDetails | null> {
+    try {
+        const [roleRows]: any = await db.query('SELECT id, nombre as name, descripcion as description FROM seg_roles WHERE id = ?', [roleId]);
+        if (roleRows.length === 0) {
+            return null;
+        }
+        const role = roleRows[0];
+
+        const [permissionRows]: any = await db.query(`
+            SELECT p.id, p.clave, p.modulo, p.descripcion 
+            FROM seg_permisos p
+            JOIN seg_rol_permiso rp ON p.id = rp.permiso_id
+            WHERE rp.rol_id = ?
+        `, [roleId]);
+
+        role.permissions = permissionRows;
+        return role;
+
+    } catch (error) {
+        console.error('Error fetching role by ID:', error);
+        return null;
+    }
+}
+
 
 export async function getPermissions() {
     try {
@@ -77,6 +104,47 @@ export async function createRole(data: { name: string; description: string; perm
         if (connection) connection.release();
     }
 }
+
+export async function updateRole(data: { id: number; name: string; description: string; permissions: number[] }) {
+    const { id, name, description, permissions } = data;
+    let connection: PoolConnection | null = null;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Actualizar el rol
+        await connection.query(
+            'UPDATE seg_roles SET nombre = ?, descripcion = ? WHERE id = ?',
+            [name, description, id]
+        );
+
+        // Eliminar permisos antiguos
+        await connection.query('DELETE FROM seg_rol_permiso WHERE rol_id = ?', [id]);
+
+        // Insertar nuevos permisos si existen
+        if (permissions.length > 0) {
+            const permissionValues = permissions.map(permissionId => [id, permissionId]);
+            await connection.query(
+                'INSERT INTO seg_rol_permiso (rol_id, permiso_id) VALUES ?',
+                [permissionValues]
+            );
+        }
+
+        await connection.commit();
+        revalidatePath('/security/roles');
+        return { success: true, message: 'Rol actualizado exitosamente.' };
+    } catch (error: any) {
+        if (connection) await connection.rollback();
+        console.error(error);
+        if (error.code === 'ER_DUP_ENTRY') {
+            return { success: false, message: 'Error: Ya existe un rol con ese nombre.' };
+        }
+        return { success: false, message: 'Error de base de datos al actualizar el rol.' };
+    } finally {
+        if (connection) connection.release();
+    }
+}
+
 
 export async function deleteRole(roleId: number, newRoleIdForUsers?: number) {
     let connection: PoolConnection | null = null;
