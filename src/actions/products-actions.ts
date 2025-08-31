@@ -15,7 +15,7 @@ export async function getProducts() {
       SELECT 
         id, sku, nombre, unidad, precio_lista as precioLista, costo_promedio as costoPromedio, 
         es_serie as esSerie, descripcion, categoria_id as categoriaId, marca_id as marcaId, 
-        modelo_id as modeloId
+        modelo_id as modeloId, atributo1, atributo2, atributo3, atributo4, atributo5, atributo6, atributo7, atributo8, atributo9, atributo10
       FROM cat_productos WHERE activo = 1 ORDER BY id DESC
     `);
     return rows as Product[];
@@ -30,6 +30,7 @@ export async function createProduct(formData: Omit<Product, 'id'>) {
 
     if (!validatedFields.success) {
         return {
+            success: false,
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Error de validación. Por favor, revise los campos.',
         };
@@ -37,10 +38,11 @@ export async function createProduct(formData: Omit<Product, 'id'>) {
 
     const { sku, nombre, descripcion, categoriaId, marcaId, modeloId, unidad, precioLista, costoPromedio, esSerie, ...attributes } = validatedFields.data;
     
-    const attributeKeys = Object.keys(attributes).sort();
+    // Aseguramos un orden consistente para las claves y valores
+    const attributeKeys = Object.keys(attributes).sort() as (keyof typeof attributes)[];
     const dbAttributeKeys = attributeKeys.map(key => key.replace('atributo', 'atributo_'));
-
-
+    const attributeValues = attributeKeys.map(key => attributes[key]);
+    
     try {
         await db.query(
             `INSERT INTO cat_productos 
@@ -49,14 +51,14 @@ export async function createProduct(formData: Omit<Product, 'id'>) {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
                 sku, nombre, descripcion, categoriaId, marcaId, modeloId, unidad, precioLista, costoPromedio, esSerie,
-                ...attributeKeys.map(key => attributes[key as keyof typeof attributes])
+                ...attributeValues
             ]
         );
         revalidatePath('/products');
-        return { message: 'Producto creado exitosamente.' };
+        return { success: true, message: 'Producto creado exitosamente.' };
     } catch (error) {
         console.error(error);
-        return { message: 'Error al crear el producto.' };
+        return { success: false, message: 'Error al crear el producto.' };
     }
 }
 
@@ -65,6 +67,7 @@ export async function updateProduct(formData: Product) {
 
     if (!validatedFields.success) {
         return {
+            success: false,
             errors: validatedFields.error.flatten().fieldErrors,
             message: 'Error de validación. Por favor, revise los campos.',
         };
@@ -72,9 +75,9 @@ export async function updateProduct(formData: Product) {
     
     const { id, sku, nombre, descripcion, categoriaId, marcaId, modeloId, unidad, precioLista, costoPromedio, esSerie, ...attributes } = validatedFields.data;
     
-    const attributeKeys = Object.keys(attributes).sort();
+    const attributeKeys = Object.keys(attributes).sort() as (keyof typeof attributes)[];
     const setClause = attributeKeys.map(key => `${key.replace('atributo', 'atributo_')} = ?`).join(', ');
-
+    const attributeValues = attributeKeys.map(key => attributes[key]);
 
     try {
         await db.query(
@@ -84,29 +87,29 @@ export async function updateProduct(formData: Product) {
             WHERE id = ?`,
             [
                 sku, nombre, descripcion, categoriaId, marcaId, modeloId, unidad, precioLista, costoPromedio, esSerie,
-                ...attributeKeys.map(key => attributes[key as keyof typeof attributes]),
+                ...attributeValues,
                 id
             ]
         );
         revalidatePath('/products');
-        return { message: 'Producto actualizado exitosamente.' };
+        return { success: true, message: 'Producto actualizado exitosamente.' };
     } catch (error) {
         console.error(error);
-        return { message: 'Error al actualizar el producto.' };
+        return { success: false, message: 'Error al actualizar el producto.' };
     }
 }
 
 export async function deleteProduct(id: number) {
   if (!id) {
-    return { message: 'ID de producto no proporcionado.' };
+    return { success: false, message: 'ID de producto no proporcionado.' };
   }
   try {
     // Soft delete by setting activo to 0
     await db.query('UPDATE cat_productos SET activo = 0 WHERE id = ?', [id]);
     revalidatePath('/products');
-    return { message: 'Producto eliminado exitosamente.' };
+    return { success: true, message: 'Producto eliminado exitosamente.' };
   } catch (error) {
     console.error(error);
-    return { message: 'Error al eliminar el producto.' };
+    return { success: false, message: 'Error al eliminar el producto.' };
   }
 }
