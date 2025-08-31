@@ -57,15 +57,11 @@ export async function getBrandsWithModels(
     const offset = (currentPage - 1) * itemsPerPage;
 
     try {
-        console.log('--- DEBUG: getBrandsWithModels ---');
-        
         const whereClause = query ? 'WHERE nombre LIKE ?' : '';
         const queryParams = query ? [`%${query}%`] : [];
 
         // Consulta de Conteo
         const countSql = `SELECT COUNT(*) as total FROM cat_marcas ${whereClause}`;
-        console.log('1. Count Query:', countSql);
-        console.log('   Parameters:', queryParams);
         const [countResult] = await db.query<CountQueryResult[]>(countSql, queryParams);
         
         const totalBrands = countResult[0].total;
@@ -74,13 +70,9 @@ export async function getBrandsWithModels(
         // Consulta de Marcas (Paginada)
         const brandsSql = `SELECT id, nombre, pais_origen FROM cat_marcas ${whereClause} ORDER BY nombre ASC LIMIT ? OFFSET ?`;
         const brandsParams = [...queryParams, itemsPerPage, offset];
-        console.log('2. Brands Query:', brandsSql);
-        console.log('   Parameters:', brandsParams);
         const [brands] = await db.query<BrandQueryResult[]>(brandsSql, brandsParams);
 
         if (brands.length === 0) {
-            console.log('No brands found, returning empty.');
-            console.log('---------------------------------');
             return { brands: [], totalPages: 0 };
         }
 
@@ -88,8 +80,6 @@ export async function getBrandsWithModels(
         
         // Consulta de Modelos
         const modelsSql = 'SELECT id, nombre, marca_id FROM cat_modelos WHERE marca_id IN (?) ORDER BY nombre ASC';
-        console.log('3. Models Query:', modelsSql);
-        console.log('   Parameters:', [brandIds]);
         const [models] = await db.query<ModelQueryResult[]>(modelsSql, [brandIds]);
 
         const modelsByBrandId = new Map<number, Model[]>();
@@ -107,7 +97,6 @@ export async function getBrandsWithModels(
             modelos: modelsByBrandId.get(brand.id) || [],
         }));
         
-        console.log('--- END DEBUG ---');
         return { brands: results, totalPages };
 
     } catch (error) {
