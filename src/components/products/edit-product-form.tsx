@@ -46,7 +46,15 @@ export function EditProductForm({ isOpen, onOpenChange, product, onProductUpdate
 
     useEffect(() => {
         if (product) {
-            form.reset(product);
+            const productData = { ...product };
+            // Ensure nullable fields are handled correctly to prevent controlled/uncontrolled errors
+            Object.keys(productData).forEach(key => {
+                const typedKey = key as keyof Product;
+                if (productData[typedKey] === null) {
+                    productData[typedKey] = '' as any;
+                }
+            });
+            form.reset(productData);
         }
     }, [product, form]);
 
