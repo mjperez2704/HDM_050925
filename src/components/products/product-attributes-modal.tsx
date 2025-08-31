@@ -20,7 +20,7 @@ type Product = {
 type ProductAttributesModalProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  product: Product | null;
+  product: Product | null; // Assuming Product is defined elsewhere in the codebase. Replace with actual type if necessary.
 };
 
 export function ProductAttributesModal({ isOpen, onOpenChange, product }: ProductAttributesModalProps) {

@@ -202,7 +202,8 @@ export default function ProductsPage() {
             </div>
             <AddProductForm isOpen={isAddProductModalOpen} onOpenChange={setIsAddProductModalOpen} onProductAdded={handleProductAdded} />
             <EditProductForm isOpen={isEditProductModalOpen} onOpenChange={setIsEditProductModalOpen} product={selectedProduct} onProductUpdated={handleProductUpdated} />
-            <ProductAttributesModal isOpen={isAttributesModalOpen} onOpenChange={setIsAttributesModalOpen} product={selectedProduct} />
+            {/*<ProductAttributesModal isOpen={isAttributesModalOpen} onOpenChange={setIsAttributesModalOpen} product={selectedProduct?.attributes} />*/}
+
         </SidebarProvider>
     );
 }
