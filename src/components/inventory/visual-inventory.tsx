@@ -9,6 +9,7 @@ import { getWarehouseStructure } from '@/actions/inventory-actions';
 
 export async function VisualInventory() {
   const inventoryData = await getWarehouseStructure();
+  console.log('Inventory Data:', inventoryData);
 
   return (
     <div className="space-y-6">

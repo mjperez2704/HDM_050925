@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -40,6 +39,7 @@ export default function LoginPage() {
           title: "Inicio de Sesión Exitoso",
           description: "Redirigiendo al dashboard.",
         });
+        // No es necesario resetear isSubmitting aquí, la redirección se encargará.
         router.push("/dashboard");
       } else {
         toast({
@@ -47,6 +47,7 @@ export default function LoginPage() {
           title: "Error de autenticación",
           description: result.message,
         });
+        setIsSubmitting(false); // Restablecer en caso de fallo
       }
     } catch (error) {
        toast({
@@ -54,8 +55,7 @@ export default function LoginPage() {
         title: "Error del servidor",
         description: "No se pudo conectar con el servidor. Inténtalo de nuevo.",
       });
-    } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false); // Restablecer en caso de error de red
     }
   };
 
