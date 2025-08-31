@@ -55,10 +55,9 @@ export async function getBrandsWithModels(
     itemsPerPage: number
 ): Promise<{ brands: BrandWithModels[], totalPages: number }> {
     const offset = (currentPage - 1) * itemsPerPage;
+    const searchQuery = `%${query}%`;
 
     try {
-        const searchQuery = `%${query}%`;
-
         // Consulta de Conteo
         const countSql = `SELECT COUNT(*) as total FROM cat_marcas WHERE nombre LIKE ?`;
         const [countResult] = await db.query<CountQueryResult[]>(countSql, [searchQuery]);
