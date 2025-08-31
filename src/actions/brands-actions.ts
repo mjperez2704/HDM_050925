@@ -57,19 +57,18 @@ export async function getBrandsWithModels(
     const offset = (currentPage - 1) * itemsPerPage;
 
     try {
-        const whereClause = query ? 'WHERE nombre LIKE ?' : '';
-        const queryParams = query ? [`%${query}%`] : [];
+        const searchQuery = `%${query}%`;
 
         // Consulta de Conteo
-        const countSql = `SELECT COUNT(*) as total FROM cat_marcas ${whereClause}`;
-        const [countResult] = await db.query<CountQueryResult[]>(countSql, queryParams);
+        const countSql = `SELECT COUNT(*) as total FROM cat_marcas WHERE nombre LIKE ?`;
+        const [countResult] = await db.query<CountQueryResult[]>(countSql, [searchQuery]);
         
         const totalBrands = countResult[0].total;
         const totalPages = Math.ceil(totalBrands / itemsPerPage);
         
         // Consulta de Marcas (Paginada)
-        const brandsSql = `SELECT id, nombre, pais_origen FROM cat_marcas ${whereClause} ORDER BY nombre ASC LIMIT ? OFFSET ?`;
-        const brandsParams = [...queryParams, itemsPerPage, offset];
+        const brandsSql = `SELECT id, nombre, pais_origen FROM cat_marcas WHERE nombre LIKE ? ORDER BY nombre ASC LIMIT ? OFFSET ?`;
+        const brandsParams = [searchQuery, itemsPerPage, offset];
         const [brands] = await db.query<BrandQueryResult[]>(brandsSql, brandsParams);
 
         if (brands.length === 0) {
