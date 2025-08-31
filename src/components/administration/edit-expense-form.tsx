@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
@@ -27,57 +26,48 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { createExpense, getUsersSimple } from '@/actions/expenses-actions';
+import { updateExpense, getUsersSimple } from '@/actions/expenses-actions';
 
-type AddExpenseFormProps = {
+type EditExpenseFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onExpenseAdded: () => void;
+  expense: Expense | null;
+  onExpenseUpdated: () => void;
 };
 
 type User = { id: number; nombre: string };
 
-const FormSchema = ExpenseSchema.omit({ id: true });
+const FormSchema = ExpenseSchema;
 
-export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpenseFormProps) {
+export function EditExpenseForm({ isOpen, onOpenChange, expense, onExpenseUpdated }: EditExpenseFormProps) {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
 
-  const form = useForm<Omit<Expense, 'id'>>({
+  const form = useForm<Expense>({
     resolver: zodResolver(FormSchema),
-    defaultValues: {
-      fecha: new Date(),
-      monto: 0,
-      usuarioId: undefined,
-      estado: 'Pendiente',
-      descripcion: '',
-      categoria: undefined
-    },
   });
 
   useEffect(() => {
     if (isOpen) {
-        getUsersSimple().then(setUsers);
-        form.reset({ // Reset form when opening
-          fecha: new Date(),
-          monto: 0,
-          usuarioId: undefined,
-          estado: 'Pendiente',
-          descripcion: '',
-          categoria: undefined
+      getUsersSimple().then(setUsers);
+      if (expense) {
+        form.reset({
+          ...expense,
+          fecha: new Date(expense.fecha), // Asegurarse que es un objeto Date
         });
+      }
     }
-  }, [isOpen, form]);
+  }, [isOpen, expense, form]);
 
-  async function onSubmit(data: Omit<Expense, 'id'>) {
-    const result = await createExpense(data);
+  async function onSubmit(data: Expense) {
+    const result = await updateExpense(data);
     toast({
         title: result.success ? "Éxito" : "Error",
         description: result.message,
         variant: result.success ? "default" : "destructive",
     });
     if (result.success) {
-        onExpenseAdded();
+        onExpenseUpdated();
         onOpenChange(false);
     }
   }
@@ -88,9 +78,9 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-              <DialogTitle>Registrar Nuevo Gasto</DialogTitle>
+              <DialogTitle>Editar Gasto</DialogTitle>
               <DialogDescription>
-                Completa los campos para registrar un nuevo gasto en el sistema.
+                Actualiza los detalles del gasto registrado.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -101,7 +91,7 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                   <FormItem>
                     <FormLabel>Descripción</FormLabel>
                     <FormControl>
-                        <Input placeholder="Ej. Pago de servicio de Internet" {...field} />
+                        <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -114,9 +104,9 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Categoría</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Seleccione una categoría" /></SelectTrigger>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
                             {GASTO_CATEGORIES.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
@@ -133,7 +123,7 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                     <FormItem>
                       <FormLabel>Monto</FormLabel>
                       <FormControl>
-                        <Input type="number" placeholder="$0.00" {...field} />
+                        <Input type="number" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -179,9 +169,9 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Estado del Gasto</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value}>
                          <FormControl>
-                            <SelectTrigger><SelectValue placeholder="Seleccione un estado" /></SelectTrigger>
+                            <SelectTrigger><SelectValue /></SelectTrigger>
                         </FormControl>
                         <SelectContent>
                             {GASTO_STATUSES.map(stat => <SelectItem key={stat} value={stat}>{stat}</SelectItem>)}
@@ -198,9 +188,9 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Realizado por</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                    <Select onValueChange={field.onChange} value={String(field.value)}>
                        <FormControl>
-                          <SelectTrigger><SelectValue placeholder="Seleccione un usuario" /></SelectTrigger>
+                          <SelectTrigger><SelectValue /></SelectTrigger>
                       </FormControl>
                       <SelectContent>
                           {users.map(user => <SelectItem key={user.id} value={String(user.id)}>{user.nombre}</SelectItem>)}
@@ -216,7 +206,7 @@ export function AddExpenseForm({ isOpen, onOpenChange, onExpenseAdded }: AddExpe
                 <Button type="button" variant="ghost">Cancelar</Button>
               </DialogClose>
               <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                Guardar Gasto
+                Guardar Cambios
               </Button>
             </DialogFooter>
           </form>
