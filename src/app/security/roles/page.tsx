@@ -27,23 +27,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { getRolesWithDetails, deleteRole, RoleWithDetails } from '@/actions/roles-actions';
+import { getRolesWithDetails, deleteRole, getPermissions, deletePermission } from '@/actions/roles-actions';
+import type { RoleWithDetails } from '@/actions/roles-actions';
 import { ReassignAndDeleteRoleDialog } from '@/components/security/reassign-and-delete-role-dialog';
 import { useToast } from "@/hooks/use-toast";
 
-const permissionsData = [
-    { key: 'inventario:ver', module: 'Inventario', description: 'Permite ver el inventario' },
-    { key: 'inventario:crear', module: 'Inventario', description: 'Permite crear productos' },
-    { key: 'inventario:editar', module: 'Inventario', description: 'Permite editar productos' },
-    { key: 'inventario:eliminar', module: 'Inventario', description: 'Permite eliminar productos' },
-    { key: 'inventario:ver_coordenadas_ocultas', module: 'Inventario', description: 'Permite ver coordenadas ocultas' },
-    { key: 'usuarios:ver', module: 'Usuarios', description: 'Permite ver la lista de usuarios' },
-];
-
-type Permission = typeof permissionsData[0];
+type Permission = { 
+    id: number;
+    clave: string;
+    modulo: string;
+    descripcion: string;
+};
 
 export default function RolesPage() {
     const [rolesData, setRolesData] = useState<RoleWithDetails[]>([]);
+    const [permissionsData, setPermissionsData] = useState<Permission[]>([]);
     const [isAddRoleModalOpen, setIsAddRoleModalOpen] = useState(false);
     const [isEditRoleModalOpen, setIsEditRoleModalOpen] = useState(false);
     const [isAddPermissionModalOpen, setIsAddPermissionModalOpen] = useState(false);
@@ -54,18 +52,21 @@ export default function RolesPage() {
     const [selectedPermission, setSelectedPermission] = useState<Permission | null>(null);
     const { toast } = useToast();
 
-    const fetchRoles = async () => {
-        const roles = await getRolesWithDetails();
+    const fetchData = async () => {
+        const [roles, permissions] = await Promise.all([
+            getRolesWithDetails(),
+            getPermissions()
+        ]);
         setRolesData(roles);
+        setPermissionsData(permissions as Permission[]);
     };
 
     useEffect(() => {
-        fetchRoles();
+        fetchData();
     }, []);
     
-    const handleRoleUpdated = () => {
-        fetchRoles();
-        setIsEditRoleModalOpen(false);
+    const handleDataUpdated = () => {
+        fetchData();
     };
 
     const handleOpenEditRoleModal = (role: RoleWithDetails) => {
@@ -87,18 +88,28 @@ export default function RolesPage() {
         }
     };
     
-    const handleConfirmDelete = async () => {
+    const handleConfirmDeleteRole = async () => {
         if (!selectedRole) return;
         const result = await deleteRole(selectedRole.id);
         if (result.success) {
             toast({ title: "Éxito", description: result.message });
-            fetchRoles();
+            fetchData();
         } else {
             toast({ variant: "destructive", title: "Error", description: result.message });
         }
         setIsConfirmDeleteDialogOpen(false);
         setSelectedRole(null);
     };
+
+    const handleConfirmDeletePermission = async (permissionId: number) => {
+        const result = await deletePermission(permissionId);
+        if (result.success) {
+            toast({ title: "Éxito", description: result.message });
+            fetchData();
+        } else {
+            toast({ variant: "destructive", title: "Error", description: result.message });
+        }
+    }
 
     return (
         <SidebarProvider>
@@ -194,10 +205,10 @@ export default function RolesPage() {
                                             </TableHeader>
                                             <TableBody>
                                                 {permissionsData.map((permission) => (
-                                                    <TableRow key={permission.key}>
-                                                        <TableCell className="font-mono text-xs">{permission.key}</TableCell>
-                                                        <TableCell>{permission.module}</TableCell>
-                                                        <TableCell>{permission.description}</TableCell>
+                                                    <TableRow key={permission.id}>
+                                                        <TableCell className="font-mono text-xs">{permission.clave}</TableCell>
+                                                        <TableCell>{permission.modulo}</TableCell>
+                                                        <TableCell>{permission.descripcion}</TableCell>
                                                         <TableCell className="text-right">
                                                             <AlertDialog>
                                                                 <DropdownMenu>
@@ -223,12 +234,12 @@ export default function RolesPage() {
                                                                     <AlertDialogHeader>
                                                                     <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                                                                     <AlertDialogDescription>
-                                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el permiso.
+                                                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el permiso y sus asignaciones a roles.
                                                                     </AlertDialogDescription>
                                                                     </AlertDialogHeader>
                                                                     <AlertDialogFooter>
                                                                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Eliminar</AlertDialogAction>
+                                                                    <AlertDialogAction className="bg-destructive hover:bg-destructive/90" onClick={() => handleConfirmDeletePermission(permission.id)}>Eliminar</AlertDialogAction>
                                                                     </AlertDialogFooter>
                                                                 </AlertDialogContent>
                                                             </AlertDialog>
@@ -244,8 +255,8 @@ export default function RolesPage() {
                     </main>
                 </div>
             </div>
-            <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} onRoleAdded={fetchRoles} />
-            <EditRoleForm isOpen={isEditRoleModalOpen} onOpenChange={setIsEditRoleModalOpen} role={selectedRole} onRoleUpdated={handleRoleUpdated} />
+            <AddRoleForm isOpen={isAddRoleModalOpen} onOpenChange={setIsAddRoleModalOpen} onRoleAdded={handleDataUpdated} />
+            <EditRoleForm isOpen={isEditRoleModalOpen} onOpenChange={setIsEditRoleModalOpen} role={selectedRole} onRoleUpdated={handleDataUpdated} />
             <AddPermissionForm isOpen={isAddPermissionModalOpen} onOpenChange={setIsAddPermissionModalOpen} />
             <EditPermissionForm isOpen={isEditPermissionModalOpen} onOpenChange={setIsEditPermissionModalOpen} permission={selectedPermission} />
              {selectedRole && (
@@ -255,19 +266,19 @@ export default function RolesPage() {
                         onOpenChange={setIsReassignDialogOpen}
                         roleToDelete={selectedRole}
                         allRoles={rolesData}
-                        onDeletionCompleted={fetchRoles}
+                        onDeletionCompleted={fetchData}
                     />
                     <AlertDialog open={isConfirmDeleteDialogOpen} onOpenChange={setIsConfirmDeleteDialogOpen}>
                          <AlertDialogContent>
                             <AlertDialogHeader>
                             <AlertDialogTitle>¿Estás seguro de eliminar el rol "{selectedRole.name}"?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                Esta acción no se puede deshacer. Se eliminará permanentemente el rol y todos sus permisos asociados.
+                                Esta acción no se puede deshacer. Se eliminará permanentemente el rol y todos sus permisos asociados. No hay usuarios asignados a este rol.
                             </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel onClick={() => setSelectedRole(null)}>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction onClick={handleConfirmDelete} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={handleConfirmDeleteRole} className="bg-destructive hover:bg-destructive/90">
                                     Eliminar
                                 </AlertDialogAction>
                             </AlertDialogFooter>

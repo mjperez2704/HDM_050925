@@ -158,6 +158,12 @@ export async function deleteRole(roleId: number, newRoleIdForUsers?: number) {
                 'UPDATE seg_usuario_rol SET rol_id = ? WHERE rol_id = ?',
                 [newRoleIdForUsers, roleId]
             );
+        } else {
+             // Verificar que no haya usuarios asignados si no se proporciona un nuevo rol
+            const [users]: any = await connection.query('SELECT COUNT(*) as count FROM seg_usuario_rol WHERE rol_id = ?', [roleId]);
+            if (users[0].count > 0) {
+                return { success: false, message: 'No se puede eliminar el rol porque tiene usuarios asignados. Debe reasignarlos primero.' };
+            }
         }
         
         // Eliminar permisos asociados al rol
@@ -174,6 +180,31 @@ export async function deleteRole(roleId: number, newRoleIdForUsers?: number) {
         if (connection) await connection.rollback();
         console.error('Error deleting role:', error);
         return { success: false, message: 'Error de base de datos al eliminar el rol.' };
+    } finally {
+        if (connection) connection.release();
+    }
+}
+
+export async function deletePermission(permissionId: number) {
+    let connection: PoolConnection | null = null;
+    try {
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        // Eliminar las asignaciones de este permiso a los roles
+        await connection.query('DELETE FROM seg_rol_permiso WHERE permiso_id = ?', [permissionId]);
+        
+        // Eliminar el permiso
+        await connection.query('DELETE FROM seg_permisos WHERE id = ?', [permissionId]);
+
+        await connection.commit();
+        revalidatePath('/security/roles');
+        return { success: true, message: 'Permiso eliminado exitosamente.' };
+
+    } catch (error) {
+        if (connection) await connection.rollback();
+        console.error('Error deleting permission:', error);
+        return { success: false, message: 'Error de base de datos al eliminar el permiso.' };
     } finally {
         if (connection) connection.release();
     }
