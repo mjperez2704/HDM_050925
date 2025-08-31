@@ -31,7 +31,8 @@ export async function getExpenses(): Promise<Expense[]> {
     `);
     return rows.map(row => ({
         ...row,
-        fecha: new Date(row.fecha), // Asegurar que la fecha sea un objeto Date
+        fecha: new Date(row.fecha),
+        monto: Number(row.monto), // Convertir a número aquí
     }));
   } catch (error) {
     console.error('Error fetching expenses:', error);
