@@ -27,7 +27,8 @@ export function ProductAttributesModal({ isOpen, onOpenChange, product }: Produc
   if (!product) return null;
 
   const productAttributes = product.attributes || {};
-  const hasAttributes = Object.keys(productAttributes).length > 0;
+  const hasAttributes = Object.keys(productAttributes).length > 0 && Object.values(productAttributes).some(v => v);
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -48,8 +49,8 @@ export function ProductAttributesModal({ isOpen, onOpenChange, product }: Produc
                 <div key={key} className="text-sm">
                   {value && (
                     <>
-                      <span className="font-semibold capitalize">{key.replace('_', ' ')}:</span>
-                      <p className="text-muted-foreground">{value}</p>
+                      <span className="font-semibold capitalize">{key.replace('atributo', 'Atributo ')}:</span>
+                      <span className="text-muted-foreground block">{value}</span>
                     </>
                   )}
                 </div>
