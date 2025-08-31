@@ -1,6 +1,9 @@
 
+"use client";
+
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Dialog,
   DialogContent,
@@ -12,91 +15,120 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-type Vendedor = {
-    name: string;
-    slug: string;
-    email: string;
-    quota: string;
-};
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { updateVendedor } from '@/actions/vendedores-actions';
+import type { Vendedor } from '@/lib/types/vendedor';
+import { UpdateVendedorSchema } from '@/lib/types/vendedor';
 
 type EditVendedorFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   vendedor: Vendedor | null;
+  onVendedorUpdated: () => void;
 };
 
-export function EditVendedorForm({ isOpen, onOpenChange, vendedor }: EditVendedorFormProps) {
-    const { register, handleSubmit, reset } = useForm({
-        defaultValues: {
-            name: vendedor?.name || '',
-            slug: vendedor?.slug || '',
-            email: vendedor?.email || '',
-            quota: vendedor?.quota.replace(/[^0-9.]/g, '') || '0',
-        }
+export function EditVendedorForm({ isOpen, onOpenChange, vendedor, onVendedorUpdated }: EditVendedorFormProps) {
+    const { toast } = useToast();
+    const form = useForm<Vendedor>({
+        resolver: zodResolver(UpdateVendedorSchema),
     });
 
     useEffect(() => {
         if (vendedor) {
-            reset({
+            form.reset({
                 ...vendedor,
-                quota: vendedor.quota.replace(/[^0-9.]/g, ''),
+                password: '', // Siempre iniciar vacío
             });
         }
-    }, [vendedor, reset]);
+    }, [vendedor, form]);
 
-    const onSubmit = (data: any) => {
-        console.log(data);
-        onOpenChange(false);
+    async function onSubmit(data: Vendedor) {
+        const result = await updateVendedor(data);
+        if (result.success) {
+            toast({
+                title: "Éxito",
+                description: result.message,
+            });
+            onVendedorUpdated();
+            onOpenChange(false);
+        } else {
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: result.message,
+            });
+        }
     };
+    
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit(onSubmit)}>
-            <DialogHeader>
-            <DialogTitle>Editar Vendedor</DialogTitle>
-            <DialogDescription>
-                Actualiza los datos del vendedor.
-            </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="vendedor-name">Nombre</Label>
-                <Input id="vendedor-name" {...register('name')} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="vendedor-email">Email</Label>
-                <Input id="vendedor-email" type="email" {...register('email')} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="vendedor-slug">Slug</Label>
-                <Input id="vendedor-slug" {...register('slug')} />
-            </div>
-            <div className="space-y-2">
-                <Label htmlFor="vendedor-quota">Cuota de Venta (Mensual)</Label>
-                <Input id="vendedor-quota" type="number" {...register('quota')} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="vendedor-password">Nueva Contraseña</Label>
-                    <Input id="vendedor-password" type="password" placeholder="Dejar en blanco para no cambiar" />
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)}>
+                <DialogHeader>
+                <DialogTitle>Editar Vendedor</DialogTitle>
+                <DialogDescription>
+                    Actualiza los datos del vendedor.
+                </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <FormField control={form.control} name="name" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Nombre</FormLabel>
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="email" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Email</FormLabel>
+                            <FormControl>
+                                <Input type="email" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="slug" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Slug</FormLabel>
+                            <FormControl>
+                                <Input {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="quota" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Cuota de Venta (Mensual)</FormLabel>
+                            <FormControl>
+                                <Input type="number" {...field} onChange={e => field.onChange(parseFloat(e.target.value) || 0)} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
+                    <FormField control={form.control} name="password" render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Nueva Contraseña</FormLabel>
+                            <FormControl>
+                                <Input type="password" placeholder="Dejar en blanco para no cambiar" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )} />
                 </div>
-                <div className="space-y-2">
-                    <Label htmlFor="vendedor-confirm-password">Confirmar Contraseña</Label>
-                    <Input id="vendedor-confirm-password" type="password" />
-                </div>
-            </div>
-            </div>
-            <DialogFooter>
-            <DialogClose asChild>
-                <Button type="button" variant="ghost">
-                Cancelar
-                </Button>
-            </DialogClose>
-            <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
-            </DialogFooter>
-        </form>
+                <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="ghost">
+                    Cancelar
+                    </Button>
+                </DialogClose>
+                <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
+                </DialogFooter>
+            </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
