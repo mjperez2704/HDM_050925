@@ -58,25 +58,26 @@ export async function getBrandsWithModels(
     const searchQuery = `%${query}%`;
 
     try {
-        // Consulta de Conteo
+        // 1. Consulta de Conteo
         const countSql = `SELECT COUNT(*) as total FROM cat_marcas WHERE nombre LIKE ?`;
         const [countResult] = await db.query<CountQueryResult[]>(countSql, [searchQuery]);
         
         const totalBrands = countResult[0].total;
         const totalPages = Math.ceil(totalBrands / itemsPerPage);
         
-        // Consulta de Marcas (Paginada)
+        // 2. Consulta de Marcas (Paginada) - Lógica simplificada y corregida
         const brandsSql = `SELECT id, nombre, pais_origen FROM cat_marcas WHERE nombre LIKE ? ORDER BY nombre ASC LIMIT ? OFFSET ?`;
         const brandsParams = [searchQuery, itemsPerPage, offset];
         const [brands] = await db.query<BrandQueryResult[]>(brandsSql, brandsParams);
 
+        // Si no hay marcas, retornar temprano para evitar errores.
         if (brands.length === 0) {
             return { brands: [], totalPages: 0 };
         }
 
         const brandIds = brands.map(b => b.id);
         
-        // Consulta de Modelos
+        // 3. Consulta de Modelos
         const modelsSql = 'SELECT id, nombre, marca_id FROM cat_modelos WHERE marca_id IN (?) ORDER BY nombre ASC';
         const [models] = await db.query<ModelQueryResult[]>(modelsSql, [brandIds]);
 
@@ -99,6 +100,7 @@ export async function getBrandsWithModels(
 
     } catch (error) {
         console.error('Error fetching brands with models:', error);
+        // Devolver un estado vacío en caso de cualquier error para no bloquear la UI.
         return { brands: [], totalPages: 0 };
     }
 }
