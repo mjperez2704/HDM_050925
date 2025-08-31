@@ -28,15 +28,14 @@ type Coordinate = {
 
 type Section = {
     name: string;
-    coordinatesCount: number;
     coordinates: Coordinate[];
 }
 
 type Warehouse = {
     name: string;
     description: string;
-    sectionsCount: number;
     sections: Section[];
+    sectionsCount: number;
 }
 
 type WarehouseManagementClientPageProps = {
@@ -198,7 +197,7 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                                     </div>
                                                 </AccordionTrigger>
                                                 <div className="flex items-center gap-2 text-sm font-normal ml-4">
-                                                    <span>{section.coordinatesCount} Coordenadas</span>
+                                                    <span>{section.coordinates.length} Coordenadas</span>
                                                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleOpenEditSectionModal(warehouse as any, section); }}>
                                                         <Edit className="h-4 w-4" />
                                                     </Button>

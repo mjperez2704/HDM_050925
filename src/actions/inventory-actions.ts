@@ -79,30 +79,65 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
 }
 
 // Tipos para la estructura del almacén
-export type Coordinate = { name: string };
+export type Coordinate = { name: string; skus: string[]; visible: boolean };
 export type Section = { name: string; coordinates: Coordinate[] };
 export type Warehouse = { name: string; sections: Section[] };
 
 interface WarehouseRow extends RowDataPacket { id: number; nombre: string; }
 interface SectionRow extends RowDataPacket { id: number; nombre: string; almacen_id: number; }
-interface CoordinateRow extends RowDataPacket { codigo_coordenada: string; seccion_id: number; }
+interface CoordinateRow extends RowDataPacket { 
+    codigo_coordenada: string; 
+    seccion_id: number; 
+    visible: number; 
+    sku: string | null;
+}
 
 /**
  * Obtiene la estructura completa de almacenes, secciones y coordenadas.
  */
-export async function getWarehouseStructure(): Promise<Warehouse[]> {
+export async function getWarehouseStructure() {
     try {
         const [warehouses] = await db.query<WarehouseRow[]>('SELECT id, nombre FROM alm_almacenes ORDER BY nombre');
         const [sections] = await db.query<SectionRow[]>('SELECT id, nombre, almacen_id FROM alm_secciones ORDER BY nombre');
-        const [coordinates] = await db.query<CoordinateRow[]>('SELECT codigo_coordenada, seccion_id FROM alm_coordenada ORDER BY codigo_coordenada');
+        const [coordinates] = await db.query<CoordinateRow[]>(`
+            SELECT 
+                c.codigo_coordenada, 
+                c.seccion_id,
+                c.visible,
+                p.sku
+            FROM alm_coordenada c
+            LEFT JOIN cat_productos p ON c.producto_id = p.id
+            ORDER BY c.codigo_coordenada
+        `);
 
-        const coordinatesBySection = new Map<number, Coordinate[]>();
+        // Agrupar SKUs por coordenada
+        const skusByCoordinate = new Map<string, { skus: string[], visible: boolean, seccion_id: number }>();
         coordinates.forEach(c => {
-            if (!coordinatesBySection.has(c.seccion_id)) {
-                coordinatesBySection.set(c.seccion_id, []);
+            const key = `${c.seccion_id}-${c.codigo_coordenada}`;
+            if (!skusByCoordinate.has(key)) {
+                skusByCoordinate.set(key, { skus: [], visible: !!c.visible, seccion_id: c.seccion_id });
             }
-            coordinatesBySection.get(c.seccion_id)!.push({ name: c.codigo_coordenada });
+            if (c.sku) {
+                skusByCoordinate.get(key)!.skus.push(c.sku);
+            }
         });
+
+        // Agrupar coordenadas por sección
+        const coordinatesBySection = new Map<number, Coordinate[]>();
+        skusByCoordinate.forEach((value, key) => {
+            const [seccion_id_str, codigo_coordenada] = key.split(/-(.+)/s);
+            const seccion_id = parseInt(seccion_id_str, 10);
+
+            if (!coordinatesBySection.has(seccion_id)) {
+                coordinatesBySection.set(seccion_id, []);
+            }
+            coordinatesBySection.get(seccion_id)!.push({ 
+                name: codigo_coordenada,
+                skus: value.skus,
+                visible: value.visible,
+            });
+        });
+
 
         const sectionsByWarehouse = new Map<number, Section[]>();
         sections.forEach(s => {
@@ -117,7 +152,9 @@ export async function getWarehouseStructure(): Promise<Warehouse[]> {
 
         return warehouses.map(w => ({
             name: w.nombre,
-            sections: sectionsByWarehouse.get(w.id) || []
+            description: '', // Añadido para que coincida con la interfaz
+            sections: sectionsByWarehouse.get(w.id) || [],
+            sectionsCount: (sectionsByWarehouse.get(w.id) || []).length
         }));
 
     } catch (error) {
