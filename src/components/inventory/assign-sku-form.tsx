@@ -1,4 +1,10 @@
 
+"use client";
+
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -9,83 +15,124 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { assignSkuToCoordinate, getProductsForSelect } from '@/actions/inventory-actions';
+
+type Coordinate = { name: string; skus: string[]; visible: boolean; };
+type Section = { id: number; name: string; coordinates: Coordinate[]; };
+type Product = { id: number; sku: string; nombre: string; };
 
 type AssignSkuFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  warehouseName?: string;
-  sectionName?: string;
-  coordinateName?: string;
-  selectedSku?: string;
+  section: Section | null;
+  coordinate: Coordinate | null;
+  onActionSuccess: () => void;
 };
 
-export function AssignSkuForm({ 
-    isOpen, 
-    onOpenChange, 
-    warehouseName, 
-    sectionName, 
-    coordinateName,
-    selectedSku 
-}: AssignSkuFormProps) {
+const FormSchema = z.object({
+  productId: z.coerce.number().int().positive("Debes seleccionar un producto."),
+  sectionId: z.number().int().positive(),
+  coordinateName: z.string().min(1),
+});
+
+export function AssignSkuForm({ isOpen, onOpenChange, section, coordinate, onActionSuccess }: AssignSkuFormProps) {
+  const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
+    defaultValues: {
+      productId: undefined,
+      sectionId: section?.id,
+      coordinateName: coordinate?.name,
+    },
+  });
+
+  useEffect(() => {
+    async function fetchProducts() {
+      if (isOpen) {
+        const productList = await getProductsForSelect();
+        setProducts(productList);
+      }
+    }
+    fetchProducts();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (section && coordinate) {
+      form.reset({
+        productId: undefined,
+        sectionId: section.id,
+        coordinateName: coordinate.name,
+      });
+    }
+  }, [section, coordinate, form, isOpen]);
+
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    const result = await assignSkuToCoordinate(data);
+    toast({
+        title: result.success ? "Éxito" : "Error",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+    });
+    if (result.success) {
+        onActionSuccess();
+        onOpenChange(false);
+    }
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Asignar SKU a Coordenada</DialogTitle>
-          <DialogDescription>
-            {warehouseName && sectionName && coordinateName 
-              ? `Asignando a: ${warehouseName} / ${sectionName} / ${coordinateName}`
-              : "Seleccione una ubicación para el SKU."
-            }
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="product-sku">Producto (SKU)</Label>
-            {selectedSku ? (
-              <Input id="product-sku" value={selectedSku} disabled />
-            ) : (
-              <Select>
-                  <SelectTrigger id="product-sku">
-                      <SelectValue placeholder="Seleccione un SKU..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                      <SelectItem value="par-ip15-pan">PAR-IP15-PAN - Pantalla iPhone 15</SelectItem>
-                      <SelectItem value="acc-cab-usbc">ACC-CAB-USBC - Cable USB-C 1m</SelectItem>
-                      <SelectItem value="equ-sam-s24">EQU-SAM-S24 - Samsung Galaxy S24</SelectItem>
-                      <SelectItem value="her-des-01">HER-DES-01 - Kit Desarmadores Precisión</SelectItem>
-                  </SelectContent>
-              </Select>
-            )}
-          </div>
-           {!coordinateName && (
-             <div className="space-y-2">
-                <Label htmlFor="coordinate">Coordenada</Label>
-                <Select>
-                    <SelectTrigger id="coordinate">
-                        <SelectValue placeholder="Seleccione una coordenada..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="a1-001">Almacén Central / Anaquel A1 / A1-001</SelectItem>
-                        <SelectItem value="a2-001">Almacén Central / Anaquel A2 / A2-001</SelectItem>
-                        <SelectItem value="ct1-001">Bodega Técnicos / Cajón Técnico 1 / CT1-001</SelectItem>
-                    </SelectContent>
-                </Select>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DialogHeader>
+              <DialogTitle>Asignar SKU a Coordenada</DialogTitle>
+              <DialogDescription>
+                Asignando a: {section?.name} / {coordinate?.name}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <FormField
+                control={form.control}
+                name="productId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Producto (SKU)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Seleccione un SKU..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {products.map((p) => (
+                          <SelectItem key={p.id} value={String(p.id)}>{p.sku} - {p.nombre}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-           )}
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button type="button" variant="ghost">
-              Cancelar
-            </Button>
-          </DialogClose>
-          <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Asignar SKU</Button>
-        </DialogFooter>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost">
+                  Cancelar
+                </Button>
+              </DialogClose>
+              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Asignar SKU</Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
 }
+
+    

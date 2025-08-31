@@ -1,7 +1,8 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
@@ -19,6 +20,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { EditWarehouseForm } from '@/components/inventory/edit-warehouse-form';
 import { EditSectionForm } from '@/components/inventory/edit-section-form';
 import { EditCoordinateForm } from '@/components/inventory/edit-coordinate-form';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useToast } from "@/hooks/use-toast";
+import { deleteWarehouse, deleteSection, deleteCoordinate } from '@/actions/inventory-actions';
+
 
 type Coordinate = {
     name: string;
@@ -27,13 +32,15 @@ type Coordinate = {
 };
 
 type Section = {
+    id: number;
     name: string;
     coordinates: Coordinate[];
 }
 
 type Warehouse = {
+    id: number;
     name: string;
-    description: string;
+    description: string | null;
     sections: Section[];
     sectionsCount: number;
 }
@@ -43,6 +50,8 @@ type WarehouseManagementClientPageProps = {
 }
 
 export default function WarehouseManagementClientPage({ initialWarehouseData }: WarehouseManagementClientPageProps) {
+    const router = useRouter();
+    const { toast } = useToast();
     const [showVisualInventory, setShowVisualInventory] = useState(false);
     const [isWarehouseModalOpen, setIsWarehouseModalOpen] = useState(false);
     const [isSectionModalOpen, setIsSectionModalOpen] = useState(false);
@@ -59,9 +68,17 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
     
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredData, setFilteredData] = useState(initialWarehouseData);
+
+    useEffect(() => {
+        setFilteredData(initialWarehouseData);
+    }, [initialWarehouseData]);
     
     const userPermissions = {
         canViewHiddenCoordinates: true
+    };
+
+    const handleActionSuccess = () => {
+        router.refresh();
     };
 
     const handleOpenSectionModal = (warehouse: Warehouse) => {
@@ -99,6 +116,21 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
         setSelectedCoordinate(coordinate);
         setIsEditCoordinateModalOpen(true);
     };
+
+    const handleDelete = async (type: 'warehouse' | 'section' | 'coordinate', id: number, name?: string) => {
+        let result;
+        if (type === 'warehouse') result = await deleteWarehouse(id);
+        if (type === 'section') result = await deleteSection(id);
+        if (type === 'coordinate' && name) result = await deleteCoordinate(id, name);
+
+        toast({
+            title: result?.success ? "Éxito" : "Error",
+            description: result?.message,
+            variant: result?.success ? "default" : "destructive",
+        });
+        if (result?.success) handleActionSuccess();
+    };
+
 
     const handleSearch = () => {
         if (!searchTerm) {
@@ -170,24 +202,24 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                 <VisualInventory />
             ) : (
                 <div className="space-y-8">
-                    {filteredData.map((warehouse, index) => (
+                    {filteredData.map((warehouse: Warehouse, index) => (
                         <Card key={index}>
                             <CardHeader>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <CardTitle>{(warehouse as any).name}</CardTitle>
-                                        <Badge variant="secondary">{(warehouse as any).sectionsCount} secciones</Badge>
+                                        <CardTitle>{warehouse.name}</CardTitle>
+                                        <Badge variant="secondary">{warehouse.sectionsCount} secciones</Badge>
                                     </div>
-                                    <Button variant="default" size="sm" onClick={() => handleOpenSectionModal(warehouse as any)}>
+                                    <Button variant="default" size="sm" onClick={() => handleOpenSectionModal(warehouse)}>
                                         <PlusCircle className="mr-2 h-4 w-4" />
                                         Agregar Sección
                                     </Button>
                                 </div>
-                                <CardDescription>{(warehouse as any).description}</CardDescription>
+                                <CardDescription>{warehouse.description}</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <Accordion type="multiple" defaultValue={(warehouse as any).sections.map((_: any, sIndex: any) => `item-${sIndex}`)} className="w-full">
-                                    {(warehouse as any).sections.map((section: any, sIndex: any) => (
+                                <Accordion type="multiple" defaultValue={warehouse.sections.map((_: any, sIndex: any) => `item-${sIndex}`)} className="w-full">
+                                    {warehouse.sections.map((section: Section, sIndex: any) => (
                                     <div key={sIndex} className="border rounded-md p-4 mb-4">
                                         <AccordionItem value={`item-${sIndex}`} className="border-b-0">
                                             <div className="flex justify-between items-center w-full">
@@ -198,7 +230,7 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                                 </AccordionTrigger>
                                                 <div className="flex items-center gap-2 text-sm font-normal ml-4">
                                                     <span>{section.coordinates.length} Coordenadas</span>
-                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleOpenEditSectionModal(warehouse as any, section); }}>
+                                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={(e) => { e.stopPropagation(); handleOpenEditSectionModal(warehouse, section); }}>
                                                         <Edit className="h-4 w-4" />
                                                     </Button>
                                                 </div>
@@ -216,13 +248,13 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                                                         !coord.visible && "border-dashed border-yellow-500"
                                                                     )}
                                                                     disabled={coord.skus.length >= 2}
-                                                                    onClick={() => handleOpenAssignSkuModal(warehouse as any, section, coord)}
+                                                                    onClick={() => handleOpenAssignSkuModal(warehouse, section, coord)}
                                                                 >
                                                                     {!coord.visible && <EyeOff className="absolute top-1 right-1 h-3 w-3 text-yellow-500" />}
                                                                     <div className="flex flex-col items-start w-full">
                                                                         <span className="font-semibold">{coord.name}</span>
                                                                         <span className="text-xs text-muted-foreground">
-                                                                            SKUs: {coord.skus.length}/2
+                                                                            SKUs: {coord.skus?.length || 0}/2
                                                                         </span>
                                                                     </div>
                                                                 </Button>
@@ -233,10 +265,26 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                                                         </Button>
                                                                     </DropdownMenuTrigger>
                                                                     <DropdownMenuContent>
-                                                                        <DropdownMenuItem onClick={() => handleOpenEditCoordinateModal(warehouse as any, section, coord)}>Editar</DropdownMenuItem>
-                                                                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                        <DropdownMenuItem onClick={() => handleOpenEditCoordinateModal(warehouse, section, coord)}>Editar</DropdownMenuItem>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                        </AlertDialogTrigger>
                                                                     </DropdownMenuContent>
                                                                 </DropdownMenu>
+                                                                 <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Esta acción no se puede deshacer. Se eliminará la coordenada '{coord.name}'.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDelete('coordinate', section.id, coord.name)} className="bg-destructive hover:bg-destructive/90">
+                                                                            Eliminar
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -245,8 +293,30 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                                         No hay coordenadas en esta sección.
                                                     </div>
                                                 )}
-                                                <div className="flex justify-end mt-4">
-                                                    <Button variant="secondary" size="sm" onClick={() => handleOpenCoordinateModal(warehouse as any, section)}>
+                                                <div className="flex justify-between items-center mt-4">
+                                                     <AlertDialog>
+                                                        <AlertDialogTrigger asChild>
+                                                            <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive">
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                Eliminar Sección
+                                                            </Button>
+                                                        </AlertDialogTrigger>
+                                                        <AlertDialogContent>
+                                                            <AlertDialogHeader>
+                                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                <AlertDialogDescription>
+                                                                    Esta acción no se puede deshacer. Se eliminará la sección '{section.name}' y todas sus coordenadas.
+                                                                </AlertDialogDescription>
+                                                            </AlertDialogHeader>
+                                                            <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDelete('section', section.id)} className="bg-destructive hover:bg-destructive/90">
+                                                                    Eliminar
+                                                                </AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                        </AlertDialogContent>
+                                                    </AlertDialog>
+                                                    <Button variant="secondary" size="sm" onClick={() => handleOpenCoordinateModal(warehouse, section)}>
                                                         <PlusCircle className="mr-2 h-4 w-4" />
                                                         Agregar Coordenada
                                                     </Button>
@@ -257,14 +327,32 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                     ))}
                                 </Accordion>
                                 <div className="flex justify-end gap-4 mt-6">
-                                    <Button variant="ghost" onClick={() => handleOpenEditWarehouseModal(warehouse as any)}>
+                                    <Button variant="ghost" onClick={() => handleOpenEditWarehouseModal(warehouse)}>
                                         <Edit className="mr-2 h-4 w-4" />
                                         Editar Almacén
                                     </Button>
-                                    <Button variant="ghost" className="text-destructive hover:text-destructive">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar Almacén
-                                    </Button>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" className="text-destructive hover:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                Eliminar Almacén
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Se eliminará el almacén '{warehouse.name}' y todas sus secciones y coordenadas.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDelete('warehouse', warehouse.id)} className="bg-destructive hover:bg-destructive/90">
+                                                    Eliminar
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                 </div>
                             </CardContent>
                         </Card>
@@ -272,23 +360,25 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                 </div>
             )}
             {/* Add Modals */}
-            <AddWarehouseForm isOpen={isWarehouseModalOpen} onOpenChange={setIsWarehouseModalOpen} />
-            <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouseName={selectedWarehouse?.name} />
-            <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} warehouseName={selectedWarehouse?.name} sectionName={selectedSection?.name} />
+            <AddWarehouseForm isOpen={isWarehouseModalOpen} onOpenChange={setIsWarehouseModalOpen} onActionSuccess={handleActionSuccess} />
+            <AddSectionForm isOpen={isSectionModalOpen} onOpenChange={setIsSectionModalOpen} warehouse={selectedWarehouse} onActionSuccess={handleActionSuccess} />
+            <AddCoordinateForm isOpen={isCoordinateModalOpen} onOpenChange={setIsCoordinateModalOpen} section={selectedSection} onActionSuccess={handleActionSuccess} />
             
             {/* Edit Modals */}
-            <EditWarehouseForm isOpen={isEditWarehouseModalOpen} onOpenChange={setIsEditWarehouseModalOpen} warehouse={selectedWarehouse} />
-            <EditSectionForm isOpen={isEditSectionModalOpen} onOpenChange={setIsEditSectionModalOpen} warehouseName={selectedWarehouse?.name} section={selectedSection} />
-            <EditCoordinateForm isOpen={isEditCoordinateModalOpen} onOpenChange={setIsEditCoordinateModalOpen} warehouseName={selectedWarehouse?.name} sectionName={selectedSection?.name} coordinate={selectedCoordinate} />
+            <EditWarehouseForm isOpen={isEditWarehouseModalOpen} onOpenChange={setIsEditWarehouseModalOpen} warehouse={selectedWarehouse} onActionSuccess={handleActionSuccess} />
+            <EditSectionForm isOpen={isEditSectionModalOpen} onOpenChange={setIsEditSectionModalOpen} section={selectedSection} onActionSuccess={handleActionSuccess} />
+            <EditCoordinateForm isOpen={isEditCoordinateModalOpen} onOpenChange={setIsEditCoordinateModalOpen} section={selectedSection} coordinate={selectedCoordinate} onActionSuccess={handleActionSuccess} />
 
             {/* Assign SKU Modal */}
             <AssignSkuForm 
                 isOpen={isAssignSkuModalOpen} 
                 onOpenChange={setIsAssignSkuModalOpen}
-                warehouseName={selectedWarehouse?.name}
-                sectionName={selectedSection?.name}
-                coordinateName={selectedCoordinate?.name}
+                section={selectedSection}
+                coordinate={selectedCoordinate}
+                onActionSuccess={handleActionSuccess}
             />
         </>
     );
 }
+
+    

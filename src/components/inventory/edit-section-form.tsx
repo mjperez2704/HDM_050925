@@ -3,6 +3,8 @@
 
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import {
   Dialog,
   DialogContent,
@@ -15,61 +17,87 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { updateSection } from '@/actions/inventory-actions';
+
 
 type Section = {
+    id: number;
     name: string;
 };
 
 type EditSectionFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  warehouseName?: string;
   section: Section | null;
+  onActionSuccess: () => void;
 };
 
-export function EditSectionForm({ isOpen, onOpenChange, warehouseName, section }: EditSectionFormProps) {
-  const { register, handleSubmit, reset } = useForm({
-    defaultValues: {
-      name: section?.name || '',
-    }
+const FormSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido.'),
+});
+
+export function EditSectionForm({ isOpen, onOpenChange, section, onActionSuccess }: EditSectionFormProps) {
+  const { toast } = useToast();
+  const form = useForm<z.infer<typeof FormSchema>>({
+    resolver: zodResolver(FormSchema),
   });
 
   useEffect(() => {
     if (section) {
-      reset({ name: section.name });
+      form.reset({ name: section.name });
     }
-  }, [section, reset]);
+  }, [section, form]);
 
-  const onSubmit = (data: any) => {
-    console.log(data);
-    onOpenChange(false);
-  };
+  async function onSubmit(data: z.infer<typeof FormSchema>) {
+    if (!section) return;
+    const result = await updateSection(section.id, data.name);
+    toast({
+        title: result.success ? "Éxito" : "Error",
+        description: result.message,
+        variant: result.success ? "default" : "destructive",
+    });
+    if (result.success) {
+        onActionSuccess();
+        onOpenChange(false);
+    }
+  }
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
-            <DialogTitle>Editar Sección</DialogTitle>
-            <DialogDescription>
-                Editando sección en el almacén: <span className="font-semibold">{warehouseName}</span>
-            </DialogDescription>
+              <DialogTitle>Editar Sección</DialogTitle>
+              <DialogDescription>
+                Editando sección: <span className="font-semibold">{section?.name}</span>
+              </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-                <Label htmlFor="section-name">Nombre de la Sección</Label>
-                <Input id="section-name" {...register('name')} />
-            </div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nuevo Nombre de la Sección</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
             <DialogFooter>
-            <DialogClose asChild>
+              <DialogClose asChild>
                 <Button type="button" variant="ghost">
-                Cancelar
+                  Cancelar
                 </Button>
-            </DialogClose>
-            <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
+              </DialogClose>
+              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Guardar Cambios</Button>
             </DialogFooter>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

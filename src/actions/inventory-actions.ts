@@ -1,10 +1,12 @@
 
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import db from '@/lib/db';
 import type { Product } from '@/lib/types/product';
 import type { ProductWithStockDetails } from '@/lib/types/inventory';
-import type { RowDataPacket } from 'mysql2';
+import type { RowDataPacket, OkPacket } from 'mysql2';
+import { z } from 'zod';
 
 interface StockDetailQueryResult extends RowDataPacket {
     id_producto: number;
@@ -80,10 +82,10 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
 
 // Tipos para la estructura del almacén
 export type Coordinate = { name: string; skus: string[]; visible: boolean };
-export type Section = { name: string; coordinates: Coordinate[] };
-export type Warehouse = { name: string; sections: Section[] };
+export type Section = { id: number; name: string; coordinates: Coordinate[] };
+export type Warehouse = { id: number; name: string; description: string | null; sections: Section[] };
 
-interface WarehouseRow extends RowDataPacket { id: number; nombre: string; }
+interface WarehouseRow extends RowDataPacket { id: number; nombre: string; descripcion: string | null; }
 interface SectionRow extends RowDataPacket { id: number; nombre: string; almacen_id: number; }
 interface CoordinateRow extends RowDataPacket { 
     codigo_coordenada: string; 
@@ -97,7 +99,7 @@ interface CoordinateRow extends RowDataPacket {
  */
 export async function getWarehouseStructure() {
     try {
-        const [warehouses] = await db.query<WarehouseRow[]>('SELECT id, nombre FROM alm_almacenes ORDER BY nombre');
+        const [warehouses] = await db.query<WarehouseRow[]>('SELECT id, nombre, descripcion FROM alm_almacenes ORDER BY nombre');
         const [sections] = await db.query<SectionRow[]>('SELECT id, nombre, almacen_id FROM alm_secciones ORDER BY nombre');
         const [coordinates] = await db.query<CoordinateRow[]>(`
             SELECT 
@@ -125,7 +127,8 @@ export async function getWarehouseStructure() {
         // Agrupar coordenadas por sección
         const coordinatesBySection = new Map<number, Coordinate[]>();
         skusByCoordinate.forEach((value, key) => {
-            const [seccion_id_str, codigo_coordenada] = key.split(/-(.+)/s);
+            const [seccion_id_str, ...codigo_coordenada_parts] = key.split('-');
+            const codigo_coordenada = codigo_coordenada_parts.join('-');
             const seccion_id = parseInt(seccion_id_str, 10);
 
             if (!coordinatesBySection.has(seccion_id)) {
@@ -145,14 +148,16 @@ export async function getWarehouseStructure() {
                 sectionsByWarehouse.set(s.almacen_id, []);
             }
             sectionsByWarehouse.get(s.almacen_id)!.push({
+                id: s.id,
                 name: s.nombre,
                 coordinates: coordinatesBySection.get(s.id) || []
             });
         });
 
         return warehouses.map(w => ({
+            id: w.id,
             name: w.nombre,
-            description: '', // Añadido para que coincida con la interfaz
+            description: w.descripcion, 
             sections: sectionsByWarehouse.get(w.id) || [],
             sectionsCount: (sectionsByWarehouse.get(w.id) || []).length
         }));
@@ -162,3 +167,172 @@ export async function getWarehouseStructure() {
         return [];
     }
 }
+
+// --- CRUD Actions ---
+
+const WarehouseSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido.'),
+  description: z.string().optional(),
+});
+
+export async function createWarehouse(formData: unknown) {
+  const validatedFields = WarehouseSchema.safeParse(formData);
+  if (!validatedFields.success) return { success: false, message: 'Datos inválidos.' };
+  const { name, description } = validatedFields.data;
+  try {
+    await db.query('INSERT INTO alm_almacenes (nombre, descripcion) VALUES (?, ?)', [name, description]);
+    revalidatePath('/inventory/warehouse-management');
+    return { success: true, message: 'Almacén creado exitosamente.' };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error al crear el almacén.' };
+  }
+}
+
+export async function updateWarehouse(id: number, formData: unknown) {
+  const validatedFields = WarehouseSchema.safeParse(formData);
+  if (!validatedFields.success) return { success: false, message: 'Datos inválidos.' };
+  const { name, description } = validatedFields.data;
+  try {
+    await db.query('UPDATE alm_almacenes SET nombre = ?, descripcion = ? WHERE id = ?', [name, description, id]);
+    revalidatePath('/inventory/warehouse-management');
+    return { success: true, message: 'Almacén actualizado.' };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error al actualizar.' };
+  }
+}
+
+export async function deleteWarehouse(id: number) {
+  try {
+    await db.query('DELETE FROM alm_almacenes WHERE id = ?', [id]);
+    revalidatePath('/inventory/warehouse-management');
+    return { success: true, message: 'Almacén eliminado.' };
+  } catch (error) {
+    console.error(error);
+    return { success: false, message: 'Error al eliminar. Verifique que no tenga secciones.' };
+  }
+}
+
+
+const SectionSchema = z.object({
+  name: z.string().min(1, 'El nombre es requerido.'),
+  warehouseId: z.number().int().positive(),
+});
+
+export async function createSection(formData: unknown) {
+    const validatedFields = SectionSchema.safeParse(formData);
+    if (!validatedFields.success) return { success: false, message: 'Datos inválidos.' };
+    const { name, warehouseId } = validatedFields.data;
+    try {
+        await db.query('INSERT INTO alm_secciones (nombre, almacen_id) VALUES (?, ?)', [name, warehouseId]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Sección creada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al crear sección.' };
+    }
+}
+
+export async function updateSection(id: number, name: string) {
+    try {
+        await db.query('UPDATE alm_secciones SET nombre = ? WHERE id = ?', [name, id]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Sección actualizada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al actualizar.' };
+    }
+}
+
+export async function deleteSection(id: number) {
+    try {
+        await db.query('DELETE FROM alm_secciones WHERE id = ?', [id]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Sección eliminada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al eliminar. Verifique que no tenga coordenadas.' };
+    }
+}
+
+const CoordinateSchema = z.object({
+    name: z.string().min(1, 'El nombre es requerido.'),
+    visible: z.boolean(),
+    sectionId: z.number().int().positive(),
+});
+
+export async function createCoordinate(formData: unknown) {
+    const validatedFields = CoordinateSchema.safeParse(formData);
+    if (!validatedFields.success) return { success: false, message: 'Datos inválidos.' };
+    const { name, visible, sectionId } = validatedFields.data;
+    try {
+        const [warehouseResult] = await db.query<RowDataPacket[]>('SELECT almacen_id FROM alm_secciones WHERE id = ?', [sectionId]);
+        if (warehouseResult.length === 0) throw new Error('Sección no encontrada');
+        const warehouseId = warehouseResult[0].almacen_id;
+
+        await db.query('INSERT INTO alm_coordenada (codigo_coordenada, seccion_id, almacen_id, visible) VALUES (?, ?, ?, ?)', [name, sectionId, warehouseId, visible]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Coordenada creada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al crear coordenada.' };
+    }
+}
+
+export async function updateCoordinate(sectionId: number, oldName: string, newName: string, newVisible: boolean) {
+     try {
+        await db.query('UPDATE alm_coordenada SET codigo_coordenada = ?, visible = ? WHERE seccion_id = ? AND codigo_coordenada = ?', [newName, newVisible, sectionId, oldName]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Coordenada actualizada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al actualizar.' };
+    }
+}
+
+export async function deleteCoordinate(sectionId: number, name: string) {
+    try {
+        await db.query('DELETE FROM alm_coordenada WHERE seccion_id = ? AND codigo_coordenada = ?', [sectionId, name]);
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Coordenada eliminada.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al eliminar. Verifique que no tenga stock.' };
+    }
+}
+
+const AssignSkuSchema = z.object({
+    productId: z.number().int().positive(),
+    sectionId: z.number().int().positive(),
+    coordinateName: z.string().min(1),
+});
+
+export async function assignSkuToCoordinate(formData: unknown) {
+    const validatedFields = AssignSkuSchema.safeParse(formData);
+    if (!validatedFields.success) return { success: false, message: 'Datos inválidos.' };
+    const { productId, sectionId, coordinateName } = validatedFields.data;
+    try {
+        const [result] = await db.query<OkPacket>('UPDATE alm_coordenada SET producto_id = ? WHERE seccion_id = ? AND codigo_coordenada = ?', [productId, sectionId, coordinateName]);
+        if (result.affectedRows === 0) {
+            return { success: false, message: 'La coordenada no fue encontrada o ya está asignada.' };
+        }
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'SKU asignado.' };
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: 'Error al asignar SKU.' };
+    }
+}
+
+export async function getProductsForSelect(): Promise<{ id: number; sku: string; nombre: string }[]> {
+    try {
+        const [rows] = await db.query<RowDataPacket[]>('SELECT id, sku, nombre FROM cat_productos WHERE activo = 1 ORDER BY sku');
+        return rows as { id: number; sku: string; nombre: string }[];
+    } catch (error) {
+        console.error('Error fetching products for select:', error);
+        return [];
+    }
+}
+
+    
