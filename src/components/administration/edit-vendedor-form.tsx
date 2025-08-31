@@ -25,7 +25,7 @@ type EditVendedorFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
   vendedor: Vendedor | null;
-  onVendedorUpdated: () => void;
+  onVendedorUpdated?: () => void;
 };
 
 export function EditVendedorForm({ isOpen, onOpenChange, vendedor, onVendedorUpdated }: EditVendedorFormProps) {
@@ -50,7 +50,9 @@ export function EditVendedorForm({ isOpen, onOpenChange, vendedor, onVendedorUpd
                 title: "Éxito",
                 description: result.message,
             });
-            onVendedorUpdated();
+            if (onVendedorUpdated) {
+                onVendedorUpdated();
+            }
             onOpenChange(false);
         } else {
             toast({
