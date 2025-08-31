@@ -25,7 +25,7 @@ export async function getExpenses(): Promise<Expense[]> {
         g.estado, 
         g.usuario_id as usuarioId,
         u.nombre as nombreUsuario
-      FROM adm_gastos g
+      FROM fin_gastos g
       LEFT JOIN seg_usuarios u ON g.usuario_id = u.id
       ORDER BY g.fecha DESC
     `);
@@ -54,7 +54,7 @@ export async function createExpense(formData: Omit<Expense, 'id'>) {
 
     try {
         await db.query(
-            'INSERT INTO adm_gastos (fecha, categoria, descripcion, monto, estado, usuario_id) VALUES (?, ?, ?, ?, ?, ?)',
+            'INSERT INTO fin_gastos (fecha, categoria, descripcion, monto, estado, usuario_id) VALUES (?, ?, ?, ?, ?, ?)',
             [fecha, categoria, descripcion, monto, estado, usuarioId]
         );
         revalidatePath('/administration/expenses');
@@ -80,7 +80,7 @@ export async function updateExpense(formData: Expense) {
 
     try {
         await db.query(
-            'UPDATE adm_gastos SET fecha = ?, categoria = ?, descripcion = ?, monto = ?, estado = ?, usuario_id = ? WHERE id = ?',
+            'UPDATE fin_gastos SET fecha = ?, categoria = ?, descripcion = ?, monto = ?, estado = ?, usuario_id = ? WHERE id = ?',
             [fecha, categoria, descripcion, monto, estado, usuarioId, id]
         );
         revalidatePath('/administration/expenses');
@@ -96,7 +96,7 @@ export async function deleteExpense(id: number) {
     return { success: false, message: 'ID de gasto no proporcionado.' };
   }
   try {
-    await db.query('DELETE FROM adm_gastos WHERE id = ?', [id]);
+    await db.query('DELETE FROM fin_gastos WHERE id = ?', [id]);
     revalidatePath('/administration/expenses');
     return { success: true, message: 'Gasto eliminado exitosamente.' };
   } catch (error) {
@@ -110,7 +110,7 @@ export async function markExpenseAsPaid(id: number) {
     return { success: false, message: 'ID de gasto no proporcionado.' };
   }
   try {
-    await db.query('UPDATE adm_gastos SET estado = "Pagado" WHERE id = ?', [id]);
+    await db.query('UPDATE fin_gastos SET estado = "Pagado" WHERE id = ?', [id]);
     revalidatePath('/administration/expenses');
     return { success: true, message: 'Gasto marcado como pagado.' };
   } catch (error) {
