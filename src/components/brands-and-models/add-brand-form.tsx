@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { createBrand } from '@/actions/brands-actions'; // 1. Importar la acción
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { createBrand } from '@/actions/brands-actions';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label";
 type AddBrandFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  onBrandAdded: () => void; // Prop para notificar que se agregó una marca
+  onBrandAdded: () => void;
 };
 
 // Componente para el botón de envío, para usar useFormStatus
@@ -39,24 +39,20 @@ function SubmitButton() {
 }
 
 export function AddBrandForm({ isOpen, onOpenChange, onBrandAdded }: AddBrandFormProps) {
-  // 2. Usar useFormState para manejar la respuesta de la acción
-  const [state, formAction] = useFormState(createBrand, { success: false, message: '' });
+  const [state, formAction] = useActionState(createBrand, { success: false, message: '' });
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.success) {
-      // 3. Si la creación fue exitosa, cerramos el modal y reseteamos el form
       onOpenChange(false);
-      onBrandAdded(); // Llamamos al callback para refrescar la lista
+      onBrandAdded();
       formRef.current?.reset();
     }
-    // Aquí podrías manejar el state.message para mostrar notificaciones (toasts)
   }, [state, onOpenChange, onBrandAdded]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        {/* 4. Envolver todo en un <form> y conectarlo a la acción */}
         <form ref={formRef} action={formAction}>
           <DialogHeader>
             <DialogTitle>Agregar Nueva Marca</DialogTitle>
@@ -71,7 +67,7 @@ export function AddBrandForm({ isOpen, onOpenChange, onBrandAdded }: AddBrandFor
               </Label>
               <Input
                 id="nombre"
-                name="nombre" // 5. Añadir el atributo name
+                name="nombre"
                 placeholder="Ej. Apple"
                 className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive"
                 required
@@ -83,11 +79,10 @@ export function AddBrandForm({ isOpen, onOpenChange, onBrandAdded }: AddBrandFor
               </Label>
               <Input
                 id="pais_origen"
-                name="pais_origen" // 6. Añadir el atributo name
+                name="pais_origen"
                 placeholder="Ej. USA"
               />
             </div>
-            {/* Mostrar mensaje de error si existe */}
             {!state.success && state.message && (
               <p className="text-sm text-red-500">{state.message}</p>
             )}

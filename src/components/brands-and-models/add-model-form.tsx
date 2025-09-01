@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { createModel } from '@/actions/brands-actions';
 import {
   Dialog,
@@ -39,18 +39,17 @@ function SubmitButton() {
 }
 
 export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModelAdded }: AddModelFormProps) {
-  const [state, formAction] = useFormState(createModel, { success: false, message: '' });
+  const [state, formAction] = useActionState(createModel, { success: false, message: '' });
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.success) {
       onOpenChange(false);
-      onModelAdded(); // Esto refrescará el conteo en la tarjeta de la marca
+      onModelAdded();
       formRef.current?.reset();
     }
   }, [state, onOpenChange, onModelAdded]);
   
-    // Limpiar el formulario si se cierra el modal
   useEffect(() => {
       if (!isOpen) {
           formRef.current?.reset();
@@ -68,7 +67,6 @@ export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModel
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            {/* Campo oculto para el ID de la marca */}
             <input type="hidden" name="marca_id" value={brandId} />
 
             <div className="space-y-2">

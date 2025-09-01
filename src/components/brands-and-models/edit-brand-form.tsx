@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { useFormState, useFormStatus } from 'react-dom';
-import { updateBrand, type Brand } from '@/actions/brands-actions'; // 1. Importar Brand y la acción
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
+import { updateBrand, type Brand } from '@/actions/brands-actions';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label";
 type EditBrandFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
-  brand: Brand | null; // 2. Cambiar a tipo Brand
+  brand: Brand | null;
   onBrandUpdated: () => void;
 };
 
@@ -38,8 +38,7 @@ function SubmitButton() {
 }
 
 export function EditBrandForm({ isOpen, onOpenChange, brand, onBrandUpdated }: EditBrandFormProps) {
-  // 3. Usar useFormState para la acción de actualización
-  const [state, formAction] = useFormState(updateBrand, { success: false, message: '' });
+  const [state, formAction] = useActionState(updateBrand, { success: false, message: '' });
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -50,7 +49,6 @@ export function EditBrandForm({ isOpen, onOpenChange, brand, onBrandUpdated }: E
     }
   }, [state, onOpenChange, onBrandUpdated]);
 
-  // Efecto para resetear el formulario cuando la marca cambia
   useEffect(() => {
       if (!isOpen) {
           formRef.current?.reset();
@@ -58,7 +56,7 @@ export function EditBrandForm({ isOpen, onOpenChange, brand, onBrandUpdated }: E
   }, [isOpen]);
 
 
-  if (!brand) return null; // No renderizar nada si no hay marca
+  if (!brand) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -71,7 +69,6 @@ export function EditBrandForm({ isOpen, onOpenChange, brand, onBrandUpdated }: E
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-             {/* Campo oculto para el ID de la marca */}
             <input type="hidden" name="id" value={brand.id} />
 
             <div className="space-y-2">
