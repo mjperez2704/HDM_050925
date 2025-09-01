@@ -32,9 +32,6 @@ export default async function BrandsAndModelsPage({ searchParams }: BrandsAndMod
   const query = searchParams.q || '';
   const brandId = searchParams.brand ? Number(searchParams.brand) : null;
 
-  // --- LÓGICA DE CARGA DE DATOS CORREGIDA ---
-  // Se consumen las acciones que devuelven { success, data } o { success, message }
-
   const [brandsResult, modelsResult, allBrandsResult] = await Promise.all([
     searchBrands(query),
     searchModels(query, brandId),
@@ -43,16 +40,16 @@ export default async function BrandsAndModelsPage({ searchParams }: BrandsAndMod
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <div className="flex min-h-screen w-full bg-muted/40">
         <CustomSidebar />
-        <div className="flex flex-col sm:gap-4 sm:py-4 sm:pl-14">
+        <div className="flex flex-1 flex-col">
           <Header />
-          <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+          <main className="flex-1 p-4 md:p-8">
             <Tabs defaultValue={currentTab} className="w-full">
-              <div className="flex items-center">
+              <div className="flex items-center mb-4">
                 <h1 className="text-lg font-semibold md:text-2xl">Catálogo de Marcas y Modelos</h1>
               </div>
-              <TabsList className="grid w-full grid-cols-2 max-w-lg mt-4">
+              <TabsList className="grid w-full grid-cols-2 max-w-lg">
                 <TabsTrigger value="brands">Marcas</TabsTrigger>
                 <TabsTrigger value="models">Modelos</TabsTrigger>
               </TabsList>
