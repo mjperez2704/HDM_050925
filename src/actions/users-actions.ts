@@ -61,7 +61,7 @@ export async function createUser(formData: unknown) {
 
   let connection: PoolConnection | null = null;
   try {
-    connection = await db.getConnection();
+    connection = await db.getConnection() as PoolConnection;
     await connection.beginTransaction();
 
     const [userResult]: any = await connection.query(
@@ -114,7 +114,7 @@ export async function updateUser(formData: unknown) {
     
     let connection: PoolConnection | null = null;
     try {
-        connection = await db.getConnection();
+        connection = await db.getConnection() as PoolConnection;
         await connection.beginTransaction();
 
         // Actualizar tabla de usuarios
@@ -156,14 +156,13 @@ export async function updateUser(formData: unknown) {
     }
 }
 
-
 export async function deleteUser(id: number) {
   if (!id) {
     return { success: false, message: 'ID de usuario no proporcionado.' };
   }
   let connection: PoolConnection | null = null;
   try {
-    connection = await db.getConnection();
+    connection = await db.getConnection() as PoolConnection;
     await connection.beginTransaction();
     
     await connection.query('DELETE FROM seg_usuario_rol WHERE usuario_id = ?', [id]);

@@ -1,9 +1,9 @@
 
 "use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useRef } from 'react';
+import { useFormState, useFormStatus } from 'react-dom';
+import { createModel } from '@/actions/brands-actions';
 import {
   Dialog,
   DialogContent,
@@ -15,9 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { createModel } from "@/actions/brands-actions";
+import { Label } from "@/components/ui/label";
 
 type AddModelFormProps = {
   isOpen: boolean;
@@ -27,75 +25,73 @@ type AddModelFormProps = {
   onModelAdded: () => void;
 };
 
-const FormSchema = z.object({
-  nombre: z.string().min(1, 'El nombre del modelo es requerido.'),
-  marca_id: z.number().int().positive('El ID de la marca es requerido.'),
-});
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button 
+      type="submit" 
+      disabled={pending} 
+      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+    >
+      {pending ? 'Creando...' : 'Crear Modelo'}
+    </Button>
+  );
+}
 
 export function AddModelForm({ isOpen, onOpenChange, brandName, brandId, onModelAdded }: AddModelFormProps) {
-  const { toast } = useToast();
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      nombre: '',
-      marca_id: brandId,
-    },
-  });
+  const [state, formAction] = useFormState(createModel, { success: false, message: '' });
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const result = await createModel(data);
-    if (result.success) {
-      toast({ title: "Éxito", description: result.message });
-      onModelAdded();
+  useEffect(() => {
+    if (state.success) {
       onOpenChange(false);
-    } else {
-      toast({ variant: "destructive", title: "Error", description: result.message });
+      onModelAdded(); // Esto refrescará el conteo en la tarjeta de la marca
+      formRef.current?.reset();
     }
-  }
-
-  // Actualizar el valor por defecto si cambia el brandId
-  form.setValue('marca_id', brandId || 0);
+  }, [state, onOpenChange, onModelAdded]);
+  
+    // Limpiar el formulario si se cierra el modal
+  useEffect(() => {
+      if (!isOpen) {
+          formRef.current?.reset();
+      }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <DialogHeader>
-              <DialogTitle>Agregar Nuevo Modelo</DialogTitle>
-              <DialogDescription>
-                Agregando un modelo para la marca: <span className="font-bold">{brandName}</span>
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
+        <form ref={formRef} action={formAction}>
+          <DialogHeader>
+            <DialogTitle>Agregar Nuevo Modelo</DialogTitle>
+            <DialogDescription>
+              Agregando un modelo para la marca: <span className="font-bold">{brandName}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Campo oculto para el ID de la marca */}
+            <input type="hidden" name="marca_id" value={brandId} />
+
+            <div className="space-y-2">
+              <Label htmlFor="nombre">Nombre del Modelo</Label>
+              <Input
+                id="nombre"
                 name="nombre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre del Modelo</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Ej. iPhone 15 Pro"
-                        className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                placeholder="Ej. iPhone 15 Pro"
+                className="border-destructive/50 focus:border-destructive ring-offset-background focus-visible:ring-destructive"
+                required
               />
             </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="ghost">
-                  Cancelar
-                </Button>
-              </DialogClose>
-              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Crear Modelo</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+            {!state.success && state.message && (
+              <p className="text-sm text-red-500">{state.message}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button type="button" variant="ghost">Cancelar</Button>
+            </DialogClose>
+            <SubmitButton />
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );
