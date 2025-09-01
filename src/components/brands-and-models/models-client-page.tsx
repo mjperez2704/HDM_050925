@@ -4,8 +4,11 @@
 import { useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { MoreHorizontal, PlusCircle, Edit, Trash2 } from 'lucide-react';
 import type { ModelWithBrand, Brand } from '@/actions/brands-actions';
 
 interface ModelsClientPageProps {
@@ -39,8 +42,6 @@ export function ModelsClientPage({ models, brands }: ModelsClientPageProps) {
   };
 
   const handleBrandChange = (brandId: string) => {
-    // CORRECCIÓN: Usar 'all' en lugar de '' para evitar el error.
-    // Si el usuario selecciona 'all', eliminamos el parámetro 'brand' de la URL.
     updateQueryParams('brand', brandId === 'all' ? '' : brandId);
   };
 
@@ -49,15 +50,13 @@ export function ModelsClientPage({ models, brands }: ModelsClientPageProps) {
       <CardHeader>
         <CardTitle>Modelos</CardTitle>
         <div className="flex flex-col sm:flex-row gap-4 mt-4">
-          {/* --- Input de búsqueda --- */}
           <Input
             type="search"
             placeholder="Buscar por nombre de modelo..."
             value={query}
             onChange={handleSearchChange}
-            className="w-full"
+            className="w-full flex-grow"
           />
-          {/* --- Select para filtrar por marca (CORREGIDO) --- */}
           <Select
             onValueChange={handleBrandChange}
             defaultValue={searchParams.get('brand') || 'all'}
@@ -66,7 +65,6 @@ export function ModelsClientPage({ models, brands }: ModelsClientPageProps) {
               <SelectValue placeholder="Filtrar por marca..." />
             </SelectTrigger>
             <SelectContent>
-              {/* CORRECCIÓN: La opción para ver todo ahora tiene value="all" */}
               <SelectItem value="all">Todas las Marcas</SelectItem>
               {brands.map(brand => (
                 <SelectItem key={brand.id} value={String(brand.id)}>
@@ -75,6 +73,10 @@ export function ModelsClientPage({ models, brands }: ModelsClientPageProps) {
               ))}
             </SelectContent>
           </Select>
+           <Button className="w-full sm:w-auto bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Agregar Modelo
+            </Button>
         </div>
       </CardHeader>
       <CardContent>
@@ -82,9 +84,30 @@ export function ModelsClientPage({ models, brands }: ModelsClientPageProps) {
           {models.length > 0 ? (
             models.map(model => (
               <Card key={model.id} className="flex flex-col">
-                  <CardHeader className="pb-2">
+                  <CardHeader className="flex flex-row items-start justify-between pb-2">
+                    <div>
                       <p className="text-xs text-muted-foreground">{model.marca_nombre}</p>
                       <CardTitle className="text-lg">{model.nombre}</CardTitle>
+                    </div>
+                     <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                          <span className="sr-only">Abrir menú</span>
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuItem>
+                          <Edit className="mr-2 h-4 w-4" />
+                          Editar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Eliminar
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </CardHeader>
               </Card>
             ))
