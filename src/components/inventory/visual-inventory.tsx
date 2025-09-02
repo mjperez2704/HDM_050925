@@ -9,7 +9,6 @@ import { getWarehouseStructure } from '@/actions/inventory-actions';
 
 export async function VisualInventory() {
   const inventoryData = await getWarehouseStructure();
-  console.log('Inventory Data:', inventoryData);
 
   return (
     <div className="space-y-6">
@@ -41,9 +40,14 @@ export async function VisualInventory() {
                                                 {section.coordinates.length > 0 ? (
                                                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 pt-2">
                                                         {section.coordinates.map((coord, cIndex) => (
-                                                            <div key={cIndex} className="flex items-center gap-2 p-2 bg-muted rounded-md text-sm">
-                                                                <MapPin className="h-4 w-4 text-primary/70" />
-                                                                <span>{coord.name}</span>
+                                                            <div key={cIndex} className="flex flex-col items-start gap-2 p-2 bg-muted rounded-md text-sm">
+                                                                <div className="flex items-center gap-2 font-semibold">
+                                                                    <MapPin className="h-4 w-4 text-primary/70" />
+                                                                    <span>{coord.name}</span>
+                                                                </div>
+                                                                <div className="pl-6 text-xs text-muted-foreground">
+                                                                    {coord.skus.length > 0 ? coord.skus.join(', ') : 'Vacío'}
+                                                                </div>
                                                             </div>
                                                         ))}
                                                     </div>

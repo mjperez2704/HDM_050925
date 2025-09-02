@@ -30,7 +30,6 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
     const router = useRouter();
     const [inventoryData, setInventoryData] = useState(initialInventoryData);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-    const [isAssignSkuModalOpen, setIsAssignSkuModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<ProductWithStock | null>(null);
 
     const handleOpenDetails = (item: ProductWithStock) => {
@@ -38,11 +37,6 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
         setIsDetailsModalOpen(true);
     };
 
-    const handleOpenAssignSku = (item: ProductWithStock) => {
-        setSelectedItem(item);
-        setIsAssignSkuModalOpen(true);
-    };
-    
     const handleAddMovement = () => {
         router.push('/inventory/adjustments');
     };
@@ -158,7 +152,6 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => handleOpenDetails(item)}>Ver Detalles</DropdownMenuItem>
                                                     <DropdownMenuItem onClick={handleAddMovement}>Ajustar Existencia</DropdownMenuItem>
-                                                    <DropdownMenuItem onClick={() => handleOpenAssignSku(item)}>Asignar Coordenada</DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
                                         </TableCell>
@@ -179,11 +172,6 @@ export function InventoryClientPage({ initialInventoryData, hasTotalStockPermiss
                     item={selectedItem}
                 />
             )}
-             <AssignSkuForm 
-                isOpen={isAssignSkuModalOpen} 
-                onOpenChange={setIsAssignSkuModalOpen}
-                selectedSku={selectedItem?.sku}
-            />
         </TooltipProvider>
     );
 }

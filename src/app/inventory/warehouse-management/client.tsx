@@ -178,48 +178,50 @@ export default function WarehouseManagementClientPage({ initialWarehouseData }: 
                                             <AccordionContent className="pt-4">
                                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
                                                     {section.coordinates.map((coord: any, cIndex: any) => (
-                                                        <div key={cIndex} className="relative group/coord">
-                                                            <Button 
-                                                                variant="outline" 
-                                                                size="sm"
-                                                                className="h-auto w-full justify-start text-left"
-                                                                onClick={() => handleOpenAssignSkuModal(warehouse, section, coord)}
-                                                            >
-                                                                <div className="flex flex-col items-start w-full">
-                                                                    <span className="font-semibold">{coord.name}</span>
-                                                                    <span className="text-xs text-muted-foreground">
-                                                                        SKUs: {coord.skus?.length || 0}/2
-                                                                    </span>
-                                                                </div>
-                                                            </Button>
-                                                            <DropdownMenu>
-                                                                <DropdownMenuTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-0 h-8 w-8 opacity-0 group-hover/coord:opacity-100">
-                                                                        <MoreVertical className="h-4 w-4" />
-                                                                    </Button>
-                                                                </DropdownMenuTrigger>
-                                                                <DropdownMenuContent>
-                                                                    <DropdownMenuItem onClick={() => handleOpenEditCoordinateModal(warehouse, section, coord)}>Editar</DropdownMenuItem>
-                                                                    <AlertDialogTrigger asChild>
-                                                                        <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
-                                                                    </AlertDialogTrigger>
-                                                                </DropdownMenuContent>
-                                                            </DropdownMenu>
-                                                             <AlertDialogContent>
-                                                                <AlertDialogHeader>
-                                                                    <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                                                                    <AlertDialogDescription>
-                                                                        Esta acción no se puede deshacer. Se eliminará la coordenada '{coord.name}'.
-                                                                    </AlertDialogDescription>
-                                                                </AlertDialogHeader>
-                                                                <AlertDialogFooter>
-                                                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDelete('coordinate', section.id, coord.name)} className="bg-destructive hover:bg-destructive/90">
-                                                                        Eliminar
-                                                                    </AlertDialogAction>
-                                                                </AlertDialogFooter>
-                                                            </AlertDialogContent>
-                                                        </div>
+                                                        <AlertDialog key={cIndex}>
+                                                            <div className="relative group/coord">
+                                                                <Button 
+                                                                    variant="outline" 
+                                                                    size="sm"
+                                                                    className="h-auto w-full justify-start text-left"
+                                                                    onClick={() => handleOpenAssignSkuModal(warehouse, section, coord)}
+                                                                >
+                                                                    <div className="flex flex-col items-start w-full">
+                                                                        <span className="font-semibold">{coord.name}</span>
+                                                                        <span className="text-xs text-muted-foreground">
+                                                                            SKUs: {coord.skus?.length || 0}/2
+                                                                        </span>
+                                                                    </div>
+                                                                </Button>
+                                                                <DropdownMenu>
+                                                                    <DropdownMenuTrigger asChild>
+                                                                        <Button variant="ghost" size="icon" className="absolute top-1/2 -translate-y-1/2 right-0 h-8 w-8 opacity-0 group-hover/coord:opacity-100">
+                                                                            <MoreVertical className="h-4 w-4" />
+                                                                        </Button>
+                                                                    </DropdownMenuTrigger>
+                                                                    <DropdownMenuContent>
+                                                                        <DropdownMenuItem onClick={() => handleOpenEditCoordinateModal(warehouse, section, coord)}>Editar</DropdownMenuItem>
+                                                                        <AlertDialogTrigger asChild>
+                                                                            <DropdownMenuItem className="text-destructive">Eliminar</DropdownMenuItem>
+                                                                        </AlertDialogTrigger>
+                                                                    </DropdownMenuContent>
+                                                                </DropdownMenu>
+                                                                <AlertDialogContent>
+                                                                    <AlertDialogHeader>
+                                                                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                                                        <AlertDialogDescription>
+                                                                            Esta acción no se puede deshacer. Se eliminará la coordenada '{coord.name}'.
+                                                                        </AlertDialogDescription>
+                                                                    </AlertDialogHeader>
+                                                                    <AlertDialogFooter>
+                                                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                                        <AlertDialogAction onClick={() => handleDelete('coordinate', section.id, coord.name)} className="bg-destructive hover:bg-destructive/90">
+                                                                            Eliminar
+                                                                        </AlertDialogAction>
+                                                                    </AlertDialogFooter>
+                                                                </AlertDialogContent>
+                                                            </div>
+                                                        </AlertDialog>
                                                     ))}
                                                 </div>
                                                 <div className="flex justify-between items-center mt-4">
