@@ -117,5 +117,3 @@ export function EditCoordinateForm({ isOpen, onOpenChange, section, coordinate, 
     </Dialog>
   );
 }
-
-    

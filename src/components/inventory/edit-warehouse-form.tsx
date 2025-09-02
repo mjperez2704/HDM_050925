@@ -124,5 +124,3 @@ export function EditWarehouseForm({ isOpen, onOpenChange, warehouse, onActionSuc
     </Dialog>
   );
 }
-
-    

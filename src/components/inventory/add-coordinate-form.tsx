@@ -116,5 +116,3 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
     </Dialog>
   );
 }
-
-    

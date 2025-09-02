@@ -102,5 +102,3 @@ export function EditSectionForm({ isOpen, onOpenChange, section, onActionSuccess
     </Dialog>
   );
 }
-
-    

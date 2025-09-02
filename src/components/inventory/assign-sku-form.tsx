@@ -134,5 +134,3 @@ export function AssignSkuForm({ isOpen, onOpenChange, section, coordinate, onAct
     </Dialog>
   );
 }
-
-    

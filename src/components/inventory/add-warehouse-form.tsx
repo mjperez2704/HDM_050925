@@ -110,5 +110,3 @@ export function AddWarehouseForm({ isOpen, onOpenChange, onActionSuccess }: AddW
     </Dialog>
   );
 }
-
-    

@@ -102,5 +102,3 @@ export function AddSectionForm({ isOpen, onOpenChange, warehouse, onActionSucces
     </Dialog>
   );
 }
-
-    
