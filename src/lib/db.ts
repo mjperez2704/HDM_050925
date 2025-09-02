@@ -7,7 +7,10 @@ const dbConfig = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
   port: Number(process.env.DB_PORT) || 3306,
- };
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+};
 
 // Función principal para ejecutar consultas de forma segura
 export async function executeQuery(query: string, values: any[] = []) {
