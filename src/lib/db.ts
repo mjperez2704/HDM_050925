@@ -2,32 +2,28 @@ import mysql from 'mysql2/promise';
 
 // Configuración de la conexión a partir de las variables de entorno
 const dbConfig = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
+  host: process.env.DB_HOST || '195.250.27.25',
+  user: process.env.DB_USER || 'megashop_hdm',
+  password: process.env.DB_PASSWORD || 'megashop_hdm',
+  database: process.env.DB_DATABASE || 'megashop_hdm',
   port: Number(process.env.DB_PORT) || 3306,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  connectTimeout: 30000, // 30 segundos
 };
 
-// Función principal para ejecutar consultas de forma segura
-export async function executeQuery(query: string, values: any[] = []) {
-  let connection;
-  try {
-    // Crea una nueva conexión para cada consulta, garantizando que no queden conexiones abiertas
-    connection = await mysql.createConnection(dbConfig);
-    const [results] = await connection.execute(query, values);
-    return results;
-  } catch (error) {
-    console.error("Error en la consulta a la base de datos:", error);
-    // Lanzamos el error para que el código que llamó a esta función sepa que algo salió mal
-    throw new Error('Error al ejecutar la consulta en la base de datos.');
-  } finally {
-    // Es CRUCIAL cerrar la conexión siempre, tanto si hubo éxito como si hubo error
-    if (connection) {
-      await connection.end();
-    }
-  }
-}
+// Crear un pool de conexiones para reutilizarlas
+const pool = mysql.createPool(dbConfig);
+
+// Objeto para exportar que simula la interfaz de una conexión única
+const db = {
+  query: async (sql: string, params?: any) => {
+    // console.log("Executing query:", sql, params); // Descomentar para depuración
+    const [rows, fields] = await pool.execute(sql, params);
+    return [rows, fields];
+  },
+  getConnection: () => pool.getConnection(),
+};
+
+export default db;

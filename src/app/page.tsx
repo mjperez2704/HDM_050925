@@ -10,5 +10,5 @@ export default function HomePage() {
     router.replace('/dashboard');
   }, [router]);
 
-  return null; // No renderiza nada mientras redirige
+  return null;
 }
