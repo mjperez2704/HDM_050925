@@ -2,7 +2,7 @@
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
-import WarehouseManagementClientPage from '@/app/inventory/warehouse-management/client';
+import WarehouseManagementClientPage from '@/app/(private)/inventory/warehouse-management/client';
 import { getWarehouseStructure } from '@/actions/inventory-actions';
 
 export default async function WarehouseManagementPage() {

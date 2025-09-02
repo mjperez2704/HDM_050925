@@ -2,7 +2,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import db from '@/lib/db';
+import { executeQuery as db } from '@/lib/db';
 import type { Product } from '@/lib/types/product';
 import type { ProductWithStockDetails } from '@/lib/types/inventory';
 import type { RowDataPacket, OkPacket } from 'mysql2';
@@ -53,8 +53,8 @@ export async function getInventoryStockDetails(): Promise<ProductWithStockDetail
             JOIN alm_secciones s ON c.seccion_id = s.id
             JOIN alm_almacenes a ON s.almacen_id = a.id`;
 
-        const [productsRes] = await db.query<ProductQueryResult[]>(productsQuery);
-        const [stockDetailsRes] = await db.query<StockDetailQueryResult[]>(stockDetailsQuery);
+        const [productsRes] = await db(productsQuery) as [ProductQueryResult[], any];
+        const [stockDetailsRes] = await db(stockDetailsQuery) as [StockDetailQueryResult[], any];
 
         const products = Array.isArray(productsRes) ? productsRes : [];
         const stockDetails = Array.isArray(stockDetailsRes) ? stockDetailsRes : [];
@@ -102,9 +102,9 @@ export async function getWarehouseStructure() {
             LEFT JOIN cat_productos p ON cs.producto_id = p.id
             ORDER BY c.seccion_id, c.codigo_coordenada`;
 
-        const [warehousesRes] = await db.query<WarehouseRow[]>(warehousesQuery);
-        const [sectionsRes] = await db.query<SectionRow[]>(sectionsQuery);
-        const [coordinatesRes] = await db.query<CoordinateRow[]>(coordinatesQuery);
+        const [warehousesRes] = await db(warehousesQuery) as [WarehouseRow[], any];
+        const [sectionsRes] = await db(sectionsQuery) as [SectionRow[], any];
+        const [coordinatesRes] = await db(coordinatesQuery) as [CoordinateRow[], any];
 
         const warehouses = Array.isArray(warehousesRes) ? warehousesRes : [];
         const sections = Array.isArray(sectionsRes) ? sectionsRes : [];
@@ -164,7 +164,7 @@ export async function createWarehouse(data: z.infer<typeof warehouseSchema>): Pr
     const validated = warehouseSchema.safeParse(data);
     if (!validated.success) return { success: false, message: 'Datos inválidos.' };
     try {
-        await db.query('INSERT INTO alm_almacenes (nombre, descripcion) VALUES (?, ?)', [validated.data.name, validated.data.description]);
+        await db('INSERT INTO alm_almacenes (nombre, descripcion) VALUES (?, ?)', [validated.data.name, validated.data.description]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Almacén creado exitosamente.' };
     } catch (error: any) {
@@ -176,7 +176,7 @@ export async function updateWarehouse(id: number, data: z.infer<typeof warehouse
     const validated = warehouseSchema.safeParse(data);
     if (!validated.success) return { success: false, message: 'Datos inválidos.' };
     try {
-        await db.query('UPDATE alm_almacenes SET nombre = ?, descripcion = ? WHERE id = ?', [validated.data.name, validated.data.description, id]);
+        await db('UPDATE alm_almacenes SET nombre = ?, descripcion = ? WHERE id = ?', [validated.data.name, validated.data.description, id]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Almacén actualizado.' };
     } catch (error: any) {
@@ -186,7 +186,7 @@ export async function updateWarehouse(id: number, data: z.infer<typeof warehouse
 }
 export async function deleteWarehouse(id: number): Promise<FormState> {
     try {
-        await db.query('DELETE FROM alm_almacenes WHERE id = ?', [id]);
+        await db('DELETE FROM alm_almacenes WHERE id = ?', [id]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Almacén eliminado.' };
     } catch (error: any) {
@@ -204,7 +204,7 @@ export async function createSection(data: z.infer<typeof sectionSchema>): Promis
     const validated = sectionSchema.safeParse(data);
     if (!validated.success) return { success: false, message: 'Datos inválidos.' };
     try {
-        await db.query('INSERT INTO alm_secciones (nombre, almacen_id) VALUES (?, ?)', [validated.data.name, validated.data.warehouseId]);
+        await db('INSERT INTO alm_secciones (nombre, almacen_id) VALUES (?, ?)', [validated.data.name, validated.data.warehouseId]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Sección creada exitosamente.' };
     } catch (error: any) {
@@ -215,7 +215,7 @@ export async function createSection(data: z.infer<typeof sectionSchema>): Promis
 export async function updateSection(id: number, name: string): Promise<FormState> {
     if (!name) return { success: false, message: 'El nombre es requerido.' };
     try {
-        await db.query('UPDATE alm_secciones SET nombre = ? WHERE id = ?', [name, id]);
+        await db('UPDATE alm_secciones SET nombre = ? WHERE id = ?', [name, id]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Sección actualizada.' };
     } catch (error: any) {
@@ -225,7 +225,7 @@ export async function updateSection(id: number, name: string): Promise<FormState
 }
 export async function deleteSection(id: number): Promise<FormState> {
     try {
-        await db.query('DELETE FROM alm_secciones WHERE id = ?', [id]);
+        await db('DELETE FROM alm_secciones WHERE id = ?', [id]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Sección eliminada.' };
     } catch (error: any) {
@@ -244,7 +244,7 @@ export async function createCoordinate(data: z.infer<typeof coordinateSchema>): 
     const validated = coordinateSchema.safeParse(data);
     if (!validated.success) return { success: false, message: 'Datos inválidos.' };
     try {
-        await db.query('INSERT INTO alm_coordenada (codigo_coordenada, seccion_id, visible) VALUES (?, ?, ?)', [validated.data.name, validated.data.sectionId, validated.data.visible]);
+        await db('INSERT INTO alm_coordenada (codigo_coordenada, seccion_id, visible) VALUES (?, ?, ?)', [validated.data.name, validated.data.sectionId, validated.data.visible]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Coordenada creada.' };
     } catch (error: any) {
@@ -254,7 +254,7 @@ export async function createCoordinate(data: z.infer<typeof coordinateSchema>): 
 }
 export async function updateCoordinate(sectionId: number, oldName: string, newName: string, visible: boolean): Promise<FormState> {
     try {
-        await db.query('UPDATE alm_coordenada SET codigo_coordenada = ?, visible = ? WHERE seccion_id = ? AND codigo_coordenada = ?', [newName, visible, sectionId, oldName]);
+        await db('UPDATE alm_coordenada SET codigo_coordenada = ?, visible = ? WHERE seccion_id = ? AND codigo_coordenada = ?', [newName, visible, sectionId, oldName]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Coordenada actualizada.' };
     } catch (error: any) {
@@ -264,7 +264,7 @@ export async function updateCoordinate(sectionId: number, oldName: string, newNa
 }
 export async function deleteCoordinate(sectionId: number, name: string): Promise<FormState> {
     try {
-        await db.query('DELETE FROM alm_coordenada WHERE seccion_id = ? AND codigo_coordenada = ?', [sectionId, name]);
+        await db('DELETE FROM alm_coordenada WHERE seccion_id = ? AND codigo_coordenada = ?', [sectionId, name]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Coordenada eliminada.' };
     } catch (error: any) {
@@ -284,11 +284,11 @@ export async function assignSkuToCoordinate(data: z.infer<typeof assignSkuSchema
     if (!validated.success) return { success: false, message: 'Datos inválidos.' };
     try {
         const { productId, sectionId, coordinateName } = validated.data;
-        const [coordinateRows]: any = await db.query('SELECT id FROM alm_coordenada WHERE seccion_id = ? AND codigo_coordenada = ?', [sectionId, coordinateName]);
+        const [coordinateRows]: any = await db('SELECT id FROM alm_coordenada WHERE seccion_id = ? AND codigo_coordenada = ?', [sectionId, coordinateName]);
         if (coordinateRows.length === 0) return { success: false, message: 'La coordenada no existe.' };
         const coordinateId = coordinateRows[0].id;
 
-        await db.query('INSERT INTO alm_coordenada_sku (coordenada_id, producto_id) VALUES (?, ?)', [coordinateId, productId]);
+        await db('INSERT INTO alm_coordenada_sku (coordenada_id, producto_id) VALUES (?, ?)', [coordinateId, productId]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'SKU asignado a la coordenada.' };
     } catch (error: any) {
@@ -300,7 +300,7 @@ export async function assignSkuToCoordinate(data: z.infer<typeof assignSkuSchema
 // --- Helpers ---
 export async function getProductsForSelect() {
     try {
-        const [rows] = await db.query<RowDataPacket[]>('SELECT id, sku, nombre FROM cat_productos WHERE activo = 1 ORDER BY sku');
+        const [rows] = await db('SELECT id, sku, nombre FROM cat_productos WHERE activo = 1 ORDER BY sku') as [RowDataPacket[], any];
         return rows as { id: number; sku: string; nombre: string; }[];
     } catch (error) {
         console.error('Error fetching products for select:', error);

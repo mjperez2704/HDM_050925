@@ -2,7 +2,10 @@
 'use server';
 
 import { z } from 'zod';
+// CORRECCIÓN: Se importa directamente el pool de conexiones 'db'.
 import db from '@/lib/db';
+import type { RowDataPacket } from 'mysql2';
+
 
 const LoginSchema = z.object({
   email: z.string().email({ message: 'Por favor, ingrese un correo electrónico válido.' }),
@@ -11,17 +14,26 @@ const LoginSchema = z.object({
 
 type LoginInput = z.infer<typeof LoginSchema>;
 
+// Tipo para el usuario que viene de la BD para mayor seguridad
+interface UserFromDB extends RowDataPacket {
+    id: number;
+    email: string;
+    password: string; // ADVERTENCIA: Contraseña en texto plano
+}
+
+
 export async function login(credentials: LoginInput): Promise<{ success: boolean; message: string }> {
   const validatedFields = LoginSchema.safeParse(credentials);
 
   if (!validatedFields.success) {
-    return { success: false, message: 'Campos inválidos.' };
+    return { success: false, message: validatedFields.error.errors[0].message };
   }
 
   const { email, password } = validatedFields.data;
 
   try {
-    const [rows]: any = await db.query(
+    // CORRECCIÓN: Usamos directamente el pool 'db.query' en lugar del antiguo executeQuery.
+    const [rows] = await db.query<UserFromDB[]>(
       'SELECT * FROM seg_usuarios WHERE email = ?',
       [email]
     );
@@ -32,18 +44,18 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
 
     const user = rows[0];
 
-    // NOTA: Esta es una comparación de texto plano.
-    // En un entorno de producción, las contraseñas deben ser hasheadas.
-    // Ejemplo: const passwordMatch = await bcrypt.compare(password, user.password_hash);
-    const passwordMatch = user.password_hash === password;
+    // ADVERTENCIA DE SEGURIDAD GRAVE:
+    // Estás comparando contraseñas en texto plano. Esto es extremadamente inseguro.
+    // Cualquier persona con acceso a la base de datos puede ver todas las contraseñas.
+    // En un siguiente paso, DEBERÍAS cambiar esto para usar una librería como 'bcryptjs' 
+    // y comparar contraseñas hasheadas. ej: const match = await bcrypt.compare(password, user.password_hash);
+    const passwordMatch = user.password === password;
 
     if (!passwordMatch) {
-      return { success: false, message: 'La contraseña es incorrecta.' + user.password_hash + '\n' + password};
+      return { success: false, message: 'La contraseña es incorrecta.' };
     }
 
-    // Aquí se debería crear una sesión o token (ej. JWT, Next-Auth)
-    // Por ahora, solo confirmamos que la autenticación fue exitosa.
-
+    // Si el login es exitoso, aquí deberías crear una sesión o un token (JWT)
     return { success: true, message: 'Inicio de sesión exitoso.' };
 
   } catch (error) {
@@ -53,9 +65,12 @@ export async function login(credentials: LoginInput): Promise<{ success: boolean
 }
 
 
-// SIMULACIÓN: En una aplicación real, obtendrías esto de la sesión (ej. Next-Auth, JWT cookie).
-// Por ahora, asumimos que el usuario con ID 1 está logueado.
+// Esta función es una simulación. En una aplicación real, obtendrías el ID del usuario de la sesión.
 const getCurrentUserId = () => 1;
+
+interface PermissionCheckResult extends RowDataPacket {
+    count: number;
+}
 
 export async function checkUserPermission(permissionId: number): Promise<boolean> {
   const userId = getCurrentUserId();
@@ -64,7 +79,8 @@ export async function checkUserPermission(permissionId: number): Promise<boolean
   }
 
   try {
-    const [rows]: any = await db.query(
+    // CORRECCIÓN: Usamos directamente 'db.query'
+    const [rows] = await db.query<PermissionCheckResult[]>(
       `SELECT COUNT(*) as count
        FROM seg_usuario_rol ur
        JOIN seg_rol_permiso rp ON ur.rol_id = rp.rol_id
@@ -74,7 +90,7 @@ export async function checkUserPermission(permissionId: number): Promise<boolean
 
     return rows[0].count > 0;
   } catch (error) {
-    console.error("Error checking user permission:", error);
+    console.error("Error al verificar permisos:", error);
     return false;
   }
 }
