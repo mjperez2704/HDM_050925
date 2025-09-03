@@ -355,3 +355,4 @@ export async function assignSkuToCoordinate(data: z.infer<typeof assignSkuSchema
         return { success: false, message: 'Error en el servidor al asignar SKU.' };
     }
 }
+
