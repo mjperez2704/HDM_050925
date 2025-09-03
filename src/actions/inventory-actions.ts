@@ -284,7 +284,9 @@ export async function createCoordinates(prevState: FormState, formData: FormData
     }
 
     const codes = validated.data.codes.split(',').map(c => c.trim()).filter(c => c.length > 0);
-    if(codes.length === 0) return { success: false, message: 'Formato de códigos inválido.' };
+    if(codes.length === 0) {
+        return { success: false, message: 'Formato de códigos inválido.' };
+    }
 
     try {
         const values = codes.map(code => [code, validated.data.sectionId, validated.data.visible]);
