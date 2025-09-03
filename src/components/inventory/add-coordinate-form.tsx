@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { createCoordinate } from '@/actions/inventory-actions';
+import { createCoordinates } from '@/actions/inventory-actions';
 
 type Section = { id: number; name: string; };
 
@@ -48,7 +48,11 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
   });
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const result = await createCoordinate(data);
+    const result = await createCoordinates({
+      codes: data.name,
+      sectionId: data.sectionId,
+      visible: data.visible,
+    });
     toast({
         title: result.success ? "Éxito" : "Error",
         description: result.message,
@@ -57,6 +61,7 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
     if (result.success) {
         onActionSuccess();
         onOpenChange(false);
+        form.reset({ name: '', visible: true, sectionId: section?.id });
     }
   }
   
