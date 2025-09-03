@@ -182,6 +182,7 @@ const warehouseSchema = z.object({
   name: z.string().min(1, 'El nombre es requerido.'),
   description: z.string().optional(),
 });
+
 export async function createWarehouse(prevState: FormState, formData: FormData): Promise<FormState> {
     const data = Object.fromEntries(formData.entries());
     const validated = warehouseSchema.safeParse(data);
@@ -355,4 +356,3 @@ export async function assignSkuToCoordinate(data: z.infer<typeof assignSkuSchema
         return { success: false, message: 'Error en el servidor al asignar SKU.' };
     }
 }
-
