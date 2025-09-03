@@ -1,9 +1,7 @@
-
 "use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +14,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { createSection } from '@/actions/inventory-actions';
 
@@ -29,44 +26,47 @@ type AddSectionFormProps = {
   onActionSuccess: () => void;
 };
 
-const FormSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido.'),
-  warehouseId: z.number().int().positive(),
-});
-
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button 
+      type="submit" 
+      disabled={pending} 
+      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+    >
+      {pending ? 'Creando...' : 'Crear Sección'}
+    </Button>
+  );
+}
 
 export function AddSectionForm({ isOpen, onOpenChange, warehouse, onActionSuccess }: AddSectionFormProps) {
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: '',
-      warehouseId: warehouse?.id
-    },
-  });
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction] = useActionState(createSection, { success: false, message: '' });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const result = await createSection(data);
-    toast({
-        title: result.success ? "Éxito" : "Error",
-        description: result.message,
-        variant: result.success ? "default" : "destructive",
-    });
-    if (result.success) {
-        onActionSuccess();
-        onOpenChange(false);
+  useEffect(() => {
+    if (state.success) {
+      toast({
+          title: "Éxito",
+          description: state.message,
+      });
+      onActionSuccess();
+      onOpenChange(false);
+      formRef.current?.reset();
     }
-  }
+  }, [state, onActionSuccess, onOpenChange, toast]);
   
-  if (isOpen && warehouse) {
-    form.setValue('warehouseId', warehouse.id);
-  }
+  // Reset form when dialog closes or warehouse changes
+  useEffect(() => {
+    if (!isOpen) {
+      formRef.current?.reset();
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form ref={formRef} action={formAction}>
             <DialogHeader>
               <DialogTitle>Agregar Nueva Sección</DialogTitle>
               <DialogDescription>
@@ -74,19 +74,19 @@ export function AddSectionForm({ isOpen, onOpenChange, warehouse, onActionSucces
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre de la Sección</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. Anaquel A1 - Pantallas" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <input type="hidden" name="warehouseId" value={warehouse?.id || ''} />
+              <div className="space-y-2">
+                <Label htmlFor="name">Nombre de la Sección</Label>
+                <Input
+                    id="name"
+                    name="name"
+                    placeholder="Ej. Anaquel A1 - Pantallas"
+                    required
+                />
+              </div>
+              {!state.success && state.message && (
+                <p className="text-sm text-red-500">{state.message}</p>
+              )}
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -94,10 +94,9 @@ export function AddSectionForm({ isOpen, onOpenChange, warehouse, onActionSucces
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Crear Sección</Button>
+              <SubmitButton />
             </DialogFooter>
           </form>
-        </Form>
       </DialogContent>
     </Dialog>
   );

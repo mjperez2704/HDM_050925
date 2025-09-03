@@ -1,9 +1,7 @@
-
 "use client";
 
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { useEffect, useRef, useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +15,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { createCoordinates } from '@/actions/inventory-actions';
 
@@ -30,50 +27,46 @@ type AddCoordinateFormProps = {
   onActionSuccess: () => void;
 };
 
-const FormSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido.'),
-  visible: z.boolean(),
-  sectionId: z.number().int().positive(),
-});
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <Button 
+      type="submit" 
+      disabled={pending} 
+      className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+    >
+      {pending ? 'Creando...' : 'Crear Coordenada'}
+    </Button>
+  );
+}
 
 export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSuccess }: AddCoordinateFormProps) {
   const { toast } = useToast();
-  const form = useForm<z.infer<typeof FormSchema>>({
-    resolver: zodResolver(FormSchema),
-    defaultValues: {
-      name: '',
-      visible: true,
-      sectionId: section?.id,
-    },
-  });
+  const formRef = useRef<HTMLFormElement>(null);
+  const [state, formAction] = useActionState(createCoordinates, { success: false, message: '' });
 
-  async function onSubmit(data: z.infer<typeof FormSchema>) {
-    const result = await createCoordinates({
-      codes: data.name,
-      sectionId: data.sectionId,
-      visible: data.visible,
-    });
-    toast({
-        title: result.success ? "Éxito" : "Error",
-        description: result.message,
-        variant: result.success ? "default" : "destructive",
-    });
-    if (result.success) {
-        onActionSuccess();
-        onOpenChange(false);
-        form.reset({ name: '', visible: true, sectionId: section?.id });
+  useEffect(() => {
+    if (state.success) {
+      toast({
+          title: "Éxito",
+          description: state.message,
+      });
+      onActionSuccess();
+      onOpenChange(false);
+      formRef.current?.reset();
     }
-  }
-  
-  if (isOpen && section) {
-      form.setValue('sectionId', section.id);
-  }
+  }, [state, onActionSuccess, onOpenChange, toast]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      formRef.current?.reset();
+    }
+  }, [isOpen]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form ref={formRef} action={formAction}>
             <DialogHeader>
               <DialogTitle>Agregar Nueva Coordenada</DialogTitle>
               <DialogDescription>
@@ -81,31 +74,24 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre de la Coordenada</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ej. A1-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="visible"
-                render={({ field }) => (
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <Switch id="visible-switch" checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                    <Label htmlFor="visible-switch">Visible</Label>
-                  </FormItem>
-                )}
-              />
+              <input type="hidden" name="sectionId" value={section?.id || ''} />
+              <div className="space-y-2">
+                <Label htmlFor="codes">Nombre(s) de la(s) Coordenada(s)</Label>
+                <Input
+                  id="codes"
+                  name="codes"
+                  placeholder="Ej. A1-001, A1-002, A1-003"
+                  required
+                />
+                <p className="text-xs text-muted-foreground">Puedes agregar varias coordenadas separadas por comas.</p>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch id="visible" name="visible" defaultChecked={true} />
+                <Label htmlFor="visible">Visible</Label>
+              </div>
+               {!state.success && state.message && (
+                <p className="text-sm text-red-500">{state.message}</p>
+              )}
             </div>
             <DialogFooter>
               <DialogClose asChild>
@@ -113,10 +99,9 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
                   Cancelar
                 </Button>
               </DialogClose>
-              <Button type="submit" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">Crear Coordenada</Button>
+              <SubmitButton />
             </DialogFooter>
           </form>
-        </Form>
       </DialogContent>
     </Dialog>
   );
