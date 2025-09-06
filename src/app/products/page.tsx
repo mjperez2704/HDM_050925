@@ -117,7 +117,7 @@ export default function ProductsPage() {
                                             <Upload className="mr-2 h-4 w-4" />
                                             Exportar
                                         </Button>
-                                        <Button 
+                                        <Button
                                             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                             onClick={() => setIsAddProductModalOpen(true)}
                                         >
@@ -142,8 +142,8 @@ export default function ProductsPage() {
                                         {productsData.map((product) => (
                                             <TableRow key={product.id}>
                                                 <TableCell>
-                                                    <Button 
-                                                        variant="link" 
+                                                    <Button
+                                                        variant="link"
                                                         className="font-medium text-destructive p-0 h-auto"
                                                         onClick={() => handleOpenAttributesModal(product)}
                                                     >
@@ -178,7 +178,7 @@ export default function ProductsPage() {
                                                             </AlertDialogHeader>
                                                             <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                                            <AlertDialogAction 
+                                                            <AlertDialogAction
                                                                 className="bg-destructive hover:bg-destructive/90"
                                                                 onClick={() => handleDeleteProduct(product.id)}
                                                             >

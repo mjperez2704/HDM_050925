@@ -19,6 +19,7 @@
                 "authProtocol": "default",
                 "enableSsl": "Disabled"
             },
+            "ssh": "Disabled",
             "previewLimit": 50,
             "server": "195.250.27.25",
             "port": 3306,

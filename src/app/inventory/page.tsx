@@ -5,7 +5,7 @@ import { Header } from '@/components/dashboard/header';
 import { getInventoryStockDetails } from '@/actions/inventory-actions';
 import { checkUserPermission } from '@/actions/auth-actions';
 import { InventoryClientPage } from '@/components/inventory/InventoryClientPage';
-import type { ProductWithStock } from '@/lib/types/inventory';
+import type {ProductWithStock, StockDetail} from '@/lib/types/inventory';
 
 // ID del permiso para "VER EXISTENCIAS TOTALES"
 const VIEW_TOTAL_STOCK_PERMISSION_ID = 7;
@@ -21,8 +21,8 @@ export default async function InventoryPage() {
     const inventoryData: ProductWithStock[] = inventoryDetails.map(item => {
         // Calcular el stock visible sumando solo las cantidades de coordenadas visibles
         const visibleStock = item.details
-            .filter(detail => detail.visible)
-            .reduce((sum, detail) => sum + detail.quantity, 0);
+            .filter((detail: StockDetail) => detail.visible)
+            .reduce((sum: number, detail: StockDetail) => sum + detail.quantity, 0);
 
         return {
             ...item,
@@ -38,8 +38,8 @@ export default async function InventoryPage() {
                 <div className="flex flex-1 flex-col">
                     <Header />
                     <main className="flex-1 p-4 md:p-8">
-                       <InventoryClientPage 
-                            initialInventoryData={inventoryData} 
+                       <InventoryClientPage
+                            initialInventoryData={inventoryData}
                             hasTotalStockPermission={hasTotalStockPermission}
                        />
                     </main>

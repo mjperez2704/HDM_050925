@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { getRoles, updateUser } from '@/actions/users-actions';
 import type { UserWithRole } from '@/lib/types/security';
@@ -46,6 +47,7 @@ export function EditUserForm({ isOpen, onOpenChange, user, onUserUpdated }: Edit
       nombre: "",
       email: "",
       rol_id: 0,
+      activo: true,
       password: "",
     },
   });
@@ -68,6 +70,7 @@ export function EditUserForm({ isOpen, onOpenChange, user, onUserUpdated }: Edit
           nombre: user.nombre,
           email: user.email,
           rol_id: userRole ? userRole.id : 0,
+          activo: user.activo,
           password: "", // Siempre empezar vacío
       });
     }
@@ -170,6 +173,18 @@ export function EditUserForm({ isOpen, onOpenChange, user, onUserUpdated }: Edit
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                <FormField
+                    control={form.control}
+                    name="activo"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <FormLabel>Usuario Activo</FormLabel>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
                 />
             </div>
             <DialogFooter>

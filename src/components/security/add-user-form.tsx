@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { createUser, getRoles } from '@/actions/users-actions';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,7 +38,7 @@ type Role = {
 export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormProps) {
   const { toast } = useToast();
   const [roles, setRoles] = useState<Role[]>([]);
-  
+
   const form = useForm({
     resolver: zodResolver(CreateUserSchema),
     defaultValues: {
@@ -48,6 +49,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
       password: "",
       rol_id: 0,
       pin: "1234",
+      activo: true,
       forcePasswordChange: false,
       forcePinChange: false,
     },
@@ -62,7 +64,7 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
       loadRoles();
     }
   }, [isOpen]);
-  
+
   async function onSubmit(data: any) {
     const result = await createUser(data);
     if (result.message.startsWith('Error')) {
@@ -196,6 +198,18 @@ export function AddUserForm({ isOpen, onOpenChange, onUserAdded }: AddUserFormPr
                       <FormMessage />
                     </FormItem>
                   )}
+                />
+                <FormField
+                    control={form.control}
+                    name="activo"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <FormLabel>Usuario Activo</FormLabel>
+                            <FormControl>
+                                <Switch checked={field.value} onCheckedChange={field.onChange} />
+                            </FormControl>
+                        </FormItem>
+                    )}
                 />
                 <FormField
                   control={form.control}

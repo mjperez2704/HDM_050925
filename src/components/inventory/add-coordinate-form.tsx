@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useEffect, useRef, useActionState } from 'react';
@@ -18,11 +19,14 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { createCoordinates } from '@/actions/inventory-actions';
 
+// Define types locally for the component
+type Warehouse = { id: number; name: string; };
 type Section = { id: number; name: string; };
 
 type AddCoordinateFormProps = {
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  warehouse: Warehouse | null;
   section: Section | null;
   onActionSuccess: () => void;
 };
@@ -40,7 +44,7 @@ function SubmitButton() {
   );
 }
 
-export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSuccess }: AddCoordinateFormProps) {
+export function AddCoordinateForm({ isOpen, onOpenChange, warehouse, section, onActionSuccess }: AddCoordinateFormProps) {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [state, formAction] = useActionState(createCoordinates, { success: false, message: '' });
@@ -70,10 +74,11 @@ export function AddCoordinateForm({ isOpen, onOpenChange, section, onActionSucce
             <DialogHeader>
               <DialogTitle>Agregar Nueva Coordenada</DialogTitle>
               <DialogDescription>
-                Agregando a {section?.name}
+                Agregando en {warehouse?.name} / {section?.name}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              <input type="hidden" name="warehouseId" value={warehouse?.id || ''} />
               <input type="hidden" name="sectionId" value={section?.id || ''} />
               <div className="space-y-2">
                 <Label htmlFor="codes">Nombre(s) de la(s) Coordenada(s)</Label>

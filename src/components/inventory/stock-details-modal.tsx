@@ -21,9 +21,10 @@ type StockDetailsModalProps = {
 
 export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsModalProps) {
   if (!item) return null;
-  
-  // El cálculo ahora se hace con los datos reales que vienen del servidor
-  const totalStock = item.details.reduce((sum, detail) => sum + detail.quantity, 0);
+
+  // Solución: Asegurarse de que 'details' sea siempre un array para evitar errores.
+  const details = item.details || [];
+  const totalStock = details.reduce((sum, detail) => sum + (detail.quantity || 0), 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -50,8 +51,8 @@ export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsMo
               </TableRow>
             </TableHeader>
             <TableBody>
-              {item.details.length > 0 ? (
-                item.details.map((detail, index) => (
+              {details.length > 0 ? (
+                details.map((detail, index) => (
                     <TableRow key={index}>
                     <TableCell>{detail.warehouse}</TableCell>
                     <TableCell>{detail.section}</TableCell>
@@ -64,8 +65,8 @@ export function StockDetailsModal({ isOpen, onOpenChange, item }: StockDetailsMo
                 ))
               ) : (
                 <TableRow>
-                    <TableCell colSpan={4} className="text-center text-muted-foreground">
-                        No hay detalles de ubicación para este producto.
+                    <TableCell colSpan={4} className="text-center text-muted-foreground py-8">
+                        Este producto no tiene stock asignado en ninguna ubicación.
                     </TableCell>
                 </TableRow>
               )}

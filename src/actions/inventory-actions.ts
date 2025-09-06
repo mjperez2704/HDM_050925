@@ -94,7 +94,7 @@ export async function getInventoryStockDetails(productId?: number) {
 export async function getWarehouseStructure() {
     try {
         const warehousesQuery = 'SELECT id, nombre, descripcion FROM alm_almacenes ORDER BY nombre';
-        const sectionsQuery = 'SELECT id, nombre, almacen_id FROM alm_secciones ORDER BY nombre';
+        const sectionsQuery = 'SELECT id, nombre, almacen_id, finalidad_permitida_id, estatus_permitido_id, marca_permitida_id FROM alm_secciones ORDER BY nombre';
         const coordinatesQuery = `
             SELECT 
                 c.id, c.seccion_id, c.codigo_coordenada as name, c.visible,
@@ -145,6 +145,11 @@ export async function getWarehouseStructure() {
             sectionsMap.get(s.almacen_id)!.push({
                 id: s.id,
                 name: s.nombre,
+                rules: {
+                    finalidadId: s.finalidad_permitida_id,
+                    estatusId: s.estatus_permitido_id,
+                    marcaId: s.marca_permitida_id,
+                },
                 coordinates: sectionCoordinates,
             });
         });
@@ -223,6 +228,31 @@ export async function deleteWarehouse(id: number): Promise<FormState> {
     }
 }
 
+export async function getRuleCatalogs() {
+    try {
+        const [marcas] = await db.query('SELECT id, nombre FROM cat_marcas ORDER BY nombre');
+        const [estatus] = await db.query('SELECT id, nombre FROM cat_estatus_producto ORDER BY nombre');
+        const [finalidades] = await db.query('SELECT id, nombre FROM cat_finalidades ORDER BY nombre');
+        const [tiposProducto] = await db.query('SELECT id, nombre FROM cat_categorias_producto ORDER BY nombre');
+
+        return {
+            marcas: marcas as { id: number; nombre: string }[],
+            estatus: estatus as { id: number; nombre: string }[],
+            finalidades: finalidades as { id: number; nombre: string }[],
+            tiposProducto: tiposProducto as { id: number; nombre: string }[],
+        };
+    } catch (error) {
+        console.error('Error fetching rule catalogs:', error);
+        return {
+            marcas: [],
+            estatus: [],
+            finalidades: [],
+            tiposProducto: [],
+        };
+    }
+}
+
+
 // --- CRUD Secciones ---
 const sectionSchema = z.object({
     name: z.string().min(1, 'El nombre es requerido.'),
@@ -270,12 +300,47 @@ export async function deleteSection(id: number): Promise<FormState> {
     }
 }
 
+const sectionRulesSchema = z.object({
+    sectionId: z.coerce.number(),
+    finalidadId: z.coerce.number().optional(),
+    estatusId: z.coerce.number().optional(),
+    marcaId: z.coerce.number().optional(),
+});
+
+export async function updateSectionRules(prevState: FormState, formData: FormData): Promise<FormState> {
+    const data = Object.fromEntries(formData.entries());
+    const validated = sectionRulesSchema.safeParse(data);
+    if (!validated.success) {
+        return { success: false, message: 'Datos inválidos.' };
+    }
+
+    const { sectionId, finalidadId, estatusId, marcaId } = validated.data;
+
+    try {
+        await db.query(
+            `UPDATE alm_secciones SET 
+                finalidad_permitida_id = ?, 
+                estatus_permitido_id = ?, 
+                marca_permitida_id = ? 
+             WHERE id = ?`,
+            [finalidadId || null, estatusId || null, marcaId || null, sectionId]
+        );
+        revalidatePath('/inventory/warehouse-management');
+        return { success: true, message: 'Reglas de la sección actualizadas.' };
+    } catch (error) {
+        console.error('Error updating section rules:', error);
+        return { success: false, message: 'Error en el servidor al actualizar las reglas.' };
+    }
+}
+
 // --- CRUD Coordenadas ---
 const coordinateSchema = z.object({
     codes: z.string().min(1, 'Debe ingresar al menos un código.'),
+    warehouseId: z.coerce.number().min(1, 'Debe seleccionar un almacén.'),
     sectionId: z.coerce.number().min(1, 'Debe seleccionar una sección.'),
     visible: z.preprocess((val) => val === 'on', z.boolean()).optional().default(true),
 });
+
 export async function createCoordinates(prevState: FormState, formData: FormData): Promise<FormState> {
     const data = Object.fromEntries(formData.entries());
     const validated = coordinateSchema.safeParse(data);
@@ -283,19 +348,30 @@ export async function createCoordinates(prevState: FormState, formData: FormData
         return { success: false, message: validated.error.errors[0].message };
     }
 
-    const codes = validated.data.codes.split(',').map(c => c.trim()).filter(c => c.length > 0);
-    if(codes.length === 0) {
+    const { codes: codesString, warehouseId, sectionId, visible } = validated.data;
+
+    const codes = codesString.split(',').map(c => c.trim()).filter(c => c.length > 0);
+    if (codes.length === 0) {
         return { success: false, message: 'Formato de códigos inválido.' };
     }
 
     try {
-        const values = codes.map(code => [code, validated.data.sectionId, validated.data.visible]);
-        await db.query('INSERT INTO alm_coordenada (codigo_coordenada, seccion_id, visible) VALUES ?', [values]);
+        const placeholders = codes.map(() => '(?, ?, ?, ?)').join(', ');
+        const values = codes.flatMap(code => [code, warehouseId, sectionId, visible]);
+        const sql = `INSERT INTO alm_coordenada (codigo_coordenada, almacen_id, seccion_id, visible) VALUES ${placeholders}`;
+        
+        await db.query(sql, values);
+        
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: `${codes.length} coordenada(s) creada(s) exitosamente.` };
     } catch (error: any) {
-        if (error.code === 'ER_DUP_ENTRY') return { success: false, message: 'Una o más coordenadas ya existen en esta sección.' };
+        if (error.code === 'ER_DUP_ENTRY') {
+            return { success: false, message: 'Una o más coordenadas ya existen en esta sección.' };
+        }
         console.error("Error creating coordinate:", error);
+        if (error.code === 'ER_NO_REFERENCED_ROW_2') {
+             return { success: false, message: `Error de referencia: Asegúrese de que el almacén y la sección seleccionados son válidos.` };
+        }
         return { success: false, message: 'Error en el servidor.' };
     }
 }
@@ -338,23 +414,85 @@ export async function assignSkuToCoordinate(data: z.infer<typeof assignSkuSchema
 
     const { coordinateName, sectionId, productId } = validated.data;
 
+    // Usaremos una transacción para asegurar la integridad de los datos
+    const connection = await db.getConnection();
     try {
-        const [coordinate] = await db.query('SELECT id FROM alm_coordenada WHERE codigo_coordenada = ? AND seccion_id = ?', [coordinateName, sectionId]) as [RowDataPacket[], any];
-        if (!coordinate[0]) {
+        await connection.beginTransaction();
+
+        // 1. Obtener la coordenada, sus reglas, y las reglas de su sección
+        const [coordinateRows] = await connection.query(`
+            SELECT 
+                c.id, c.tipos_producto_permitidos,
+                s.finalidad_permitida_id, s.estatus_permitido_id, s.marca_permitida_id
+            FROM alm_coordenada c
+            JOIN alm_secciones s ON c.seccion_id = s.id
+            WHERE c.codigo_coordenada = ? AND c.seccion_id = ? FOR UPDATE
+        `, [coordinateName, sectionId]) as [RowDataPacket[], any];
+
+        if (coordinateRows.length === 0) {
+            await connection.rollback();
             return { success: false, message: 'Coordenada no encontrada.' };
         }
-        const coordinateId = coordinate[0].id;
-        
-        await db.query(`
-            INSERT INTO alm_coordenada_sku (coordenada_id, producto_id, cantidad) 
-            VALUES (?, ?, 0) 
-            ON DUPLICATE KEY UPDATE producto_id = ?`,
-            [coordinateId, productId, productId]
-        );
+        const coordinate = coordinateRows[0];
+        const coordinateId = coordinate.id;
+
+        // 2. Validar la regla de máximo 2 SKUs por coordenada
+        const [existingSkus] = await connection.query(
+            'SELECT producto_id FROM alm_coordenada_sku WHERE coordenada_id = ?',
+            [coordinateId]
+        ) as [RowDataPacket[], any];
+
+        const isSkuAlreadyInCoordinate = existingSkus.some((sku: any) => sku.producto_id === productId);
+
+        if (!isSkuAlreadyInCoordinate && existingSkus.length >= 2) {
+            await connection.rollback();
+            return { success: false, message: 'Regla de Coordenada: Ya se ha alcanzado el límite de 2 SKUs diferentes.' };
+        }
+
+        // 3. Obtener las propiedades del producto a asignar
+        const [productRows] = await connection.query(
+            'SELECT marca_id, estatus_id, categoria_id FROM cat_productos WHERE id = ?',
+            [productId]
+        ) as [RowDataPacket[], any];
+
+        if (productRows.length === 0) {
+            await connection.rollback();
+            return { success: false, message: 'Producto no encontrado.' };
+        }
+        const product = productRows[0];
+
+        // 4. Validar las reglas de la SECCIÓN (solo si la sección tiene reglas definidas)
+        if (coordinate.marca_permitida_id && product.marca_id !== coordinate.marca_permitida_id) {
+            await connection.rollback();
+            return { success: false, message: 'Regla de Sección: La marca del producto no está permitida.' };
+        }
+        if (coordinate.estatus_permitido_id && product.estatus_id !== coordinate.estatus_permitido_id) {
+            await connection.rollback();
+            return { success: false, message: 'Regla de Sección: El estatus del producto no está permitido.' };
+        }
+
+        // 5. Validar las reglas de la COORDENADA (solo si la coordenada tiene reglas definidas)
+        if (coordinate.tipos_producto_permitidos) {
+            const allowedTypes = coordinate.tipos_producto_permitidos.split(',').map(Number);
+            if (!allowedTypes.includes(product.categoria_id)) {
+                await connection.rollback();
+                return { success: false, message: 'Regla de Coordenada: El tipo de producto (categoría) no está permitido.' };
+            }
+        }
+
+        // 6. Si todas las validaciones pasan, realizar la asignación (si no existe ya)
+        if (!isSkuAlreadyInCoordinate) {
+            await connection.query('INSERT INTO alm_coordenada_sku (coordenada_id, producto_id, cantidad) VALUES (?, ?, 0)', [coordinateId, productId]);
+        }
+
+        await connection.commit();
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'SKU asignado correctamente.' };
-    } catch (error) {
+    } catch (error: any) {
+        if (connection) await connection.rollback();
         console.error('Error assigning SKU:', error);
         return { success: false, message: 'Error en el servidor al asignar SKU.' };
+    } finally {
+        if (connection) connection.release();
     }
 }
