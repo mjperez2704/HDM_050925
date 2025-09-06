@@ -29,6 +29,36 @@ export async function getSimpleProducts(query: string) {
     }
 }
 
+export async function getProductStockByWarehouse(productId: number): Promise<{ [key: string]: number }> {
+    if (!productId) return {};
+
+    try {
+        const sql = `
+            SELECT 
+                a.nombre as warehouse,
+                SUM(cs.cantidad) as total_quantity
+            FROM alm_coordenada_sku cs
+            JOIN alm_coordenada c ON cs.coordenada_id = c.id
+            JOIN alm_secciones s ON c.seccion_id = s.id
+            JOIN alm_almacenes a ON s.almacen_id = a.id
+            WHERE cs.producto_id = ?
+            GROUP BY a.nombre
+            ORDER BY a.nombre;
+        `;
+        const [rows] = await db.query(sql, [productId]) as [any[], any];
+
+        const stockByWarehouse = rows.reduce((acc, row) => {
+            acc[row.warehouse] = row.total_quantity;
+            return acc;
+        }, {} as { [key: string]: number });
+
+        return stockByWarehouse;
+    } catch (error) {
+        console.error(`Error fetching stock for product ${productId}:`, error);
+        return {};
+    }
+}
+
 export async function getInventoryStockDetails(productId?: number) {
     try {
         let sql = `
@@ -114,34 +144,44 @@ export async function getWarehouseStructure() {
         const allSections = (sections[0] as any[]);
         const allCoordinates = (coordinates[0] as any[]);
 
-        const coordinatesMap = new Map<number, any[]>();
-        allCoordinates.forEach(c => {
-            const coordData = {
-                id: c.id,
-                name: c.name,
-                visible: c.visible,
-                skus: c.sku ? [c.sku] : [], // Inicialmente solo un SKU
-            };
+        const coordinatesBySection = new Map<number, any[]>();
+        const uniqueCoordinates = new Map<number, any>(); // Helper map to track unique coordinates by their ID
 
-            const existingSection = coordinatesMap.get(c.seccion_id);
-            if (existingSection) {
-                const existingCoord = existingSection.find(ec => ec.name === c.name);
-                if (existingCoord && c.sku) {
-                    existingCoord.skus.push(c.sku);
-                } else {
-                    existingSection.push(coordData);
+        allCoordinates.forEach(row => {
+            let coord = uniqueCoordinates.get(row.id);
+
+            if (!coord) {
+                // This coordinate hasn't been seen before
+                coord = {
+                    id: row.id,
+                    name: row.name,
+                    visible: !!row.visible,
+                    skus: [],
+                };
+                uniqueCoordinates.set(row.id, coord);
+
+                // Add the new, unique coordinate object to the correct section
+                if (!coordinatesBySection.has(row.seccion_id)) {
+                    coordinatesBySection.set(row.seccion_id, []);
                 }
-            } else {
-                coordinatesMap.set(c.seccion_id, [coordData]);
+                coordinatesBySection.get(row.seccion_id)!.push(coord);
+            }
+
+            // Always add the SKU to the (now unique) coordinate object
+            if (row.sku) {
+                // Ensure the SKU is not duplicated if the query returns strange duplicates
+                if (!coord.skus.includes(row.sku)) {
+                    coord.skus.push(row.sku);
+                }
             }
         });
-        
+
         const sectionsMap = new Map<number, any[]>();
         allSections.forEach(s => {
             if (!sectionsMap.has(s.almacen_id)) {
                 sectionsMap.set(s.almacen_id, []);
             }
-            const sectionCoordinates = coordinatesMap.get(s.id) || [];
+            const sectionCoordinates = coordinatesBySection.get(s.id) || [];
             sectionsMap.get(s.almacen_id)!.push({
                 id: s.id,
                 name: s.nombre,
@@ -159,7 +199,7 @@ export async function getWarehouseStructure() {
             return {
                 id: w.id,
                 name: w.nombre,
-                description: w.descripcion, 
+                description: w.descripcion,
                 sections: warehouseSections,
                 sectionsCount: warehouseSections.length
             };
@@ -255,17 +295,25 @@ export async function getRuleCatalogs() {
 
 // --- CRUD Secciones ---
 const sectionSchema = z.object({
-    name: z.string().min(1, 'El nombre es requerido.'),
+    nombre: z.string().min(3, 'El nombre es requerido.'),
+    clave: z.string().min(1, 'La clave es requerida.'),
     warehouseId: z.coerce.number().min(1, 'Debe seleccionar un almacén.'),
 });
 
 export async function createSection(prevState: FormState, formData: FormData): Promise<FormState> {
     const data = Object.fromEntries(formData.entries());
     const validated = sectionSchema.safeParse(data);
-    if (!validated.success) return { success: false, message: 'Datos inválidos.' };
+    if (!validated.success) return { success: false, message: 'Datos inválidos. Revisa la clave y el nombre.' };
+
+    const { warehouseId, clave, nombre } = validated.data;
 
     try {
-        await db.query('INSERT INTO alm_secciones (nombre, almacen_id) VALUES (?, ?)', [validated.data.name, validated.data.warehouseId]);
+        // Verificar si la clave ya existe en ese almacén
+        const [existing] = await db.query('SELECT id FROM alm_secciones WHERE almacen_id = ? AND clave = ?', [warehouseId, clave]) as [RowDataPacket[], any];
+        if (existing.length > 0) {
+            return { success: false, message: `La clave "${clave}" ya existe en este almacén.` };
+        }
+        await db.query('INSERT INTO alm_secciones (nombre, clave, almacen_id) VALUES (?, ?, ?)', [nombre, clave, warehouseId]);
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: 'Sección creada exitosamente.' };
     } catch (error: any) {
@@ -355,16 +403,23 @@ export async function createCoordinates(prevState: FormState, formData: FormData
         return { success: false, message: 'Formato de códigos inválido.' };
     }
 
+    let connection;
     try {
-        const placeholders = codes.map(() => '(?, ?, ?, ?)').join(', ');
-        const values = codes.flatMap(code => [code, warehouseId, sectionId, visible]);
-        const sql = `INSERT INTO alm_coordenada (codigo_coordenada, almacen_id, seccion_id, visible) VALUES ${placeholders}`;
-        
-        await db.query(sql, values);
-        
+        connection = await db.getConnection();
+        await connection.beginTransaction();
+
+        for (const code of codes) {
+            await connection.query(
+                'INSERT INTO alm_coordenada (codigo_coordenada, seccion_id, visible, almacen_id) VALUES (?, ?, ?, ?)',
+                [code, sectionId, visible, warehouseId]
+            );
+        }
+
+        await connection.commit();
         revalidatePath('/inventory/warehouse-management');
         return { success: true, message: `${codes.length} coordenada(s) creada(s) exitosamente.` };
     } catch (error: any) {
+        if (connection) await connection.rollback();
         if (error.code === 'ER_DUP_ENTRY') {
             return { success: false, message: 'Una o más coordenadas ya existen en esta sección.' };
         }
@@ -373,6 +428,8 @@ export async function createCoordinates(prevState: FormState, formData: FormData
              return { success: false, message: `Error de referencia: Asegúrese de que el almacén y la sección seleccionados son válidos.` };
         }
         return { success: false, message: 'Error en el servidor.' };
+    } finally {
+        if (connection) connection.release();
     }
 }
 

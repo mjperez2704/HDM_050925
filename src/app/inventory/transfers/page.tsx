@@ -1,7 +1,6 @@
+'use client';
 
-"use client";
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { CustomSidebar } from '@/components/sidebar/sidebar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,40 +12,88 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { Header } from '@/components/dashboard/header';
 import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { getProductsForSelect, getProductStockByWarehouse, getWarehouseStructure } from '@/actions/inventory-actions';
 
-// Mock data simulating stock in different warehouses
-const mockStockData = {
-    'par-ip15-pan': { 'almacen-central': 10, 'bodega-tecnicos': 5 },
-    'acc-cab-usbc': { 'almacen-central': 250, 'bodega-tecnicos': 50 },
-    'equ-sam-s24': { 'almacen-central': 2, 'bodega-tecnicos': 0 },
-};
+// Tipos para los datos que cargaremos
+type Product = { id: number; sku: string; nombre: string; };
+type Warehouse = { id: number; name: string; description: string; };
+type StockData = { [key: string]: number };
 
 export default function InventoryTransfersPage() {
     const { toast } = useToast();
-    const [selectedSku, setSelectedSku] = useState('');
+
+    // Estados para los datos
+    const [products, setProducts] = useState<Product[]>([]);
+    const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+    const [stock, setStock] = useState<StockData>({});
+
+    // Estados para el formulario
+    const [selectedProductId, setSelectedProductId] = useState<string>('');
+    const [selectedOriginWarehouse, setSelectedOriginWarehouse] = useState<string>('');
     const [quantityNeeded, setQuantityNeeded] = useState(1);
 
+    // Estados de carga
+    const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+    const [isLoadingStock, setIsLoadingStock] = useState(false);
+
+    // Cargar datos iniciales (productos y almacenes)
+    useEffect(() => {
+        async function loadInitialData() {
+            setIsLoadingProducts(true);
+            try {
+                const [productsData, warehousesData] = await Promise.all([
+                    getProductsForSelect(),
+                    getWarehouseStructure()
+                ]);
+                setProducts(productsData);
+                setWarehouses(warehousesData.map(w => ({ id: w.id, name: w.name, description: w.description })));
+            } catch (error) {
+                toast({ variant: "destructive", title: "Error", description: "No se pudieron cargar los datos iniciales." });
+            }
+            setIsLoadingProducts(false);
+        }
+        loadInitialData();
+    }, [toast]);
+
+    // Cargar stock cuando se selecciona un producto
+    useEffect(() => {
+        async function loadStock() {
+            if (!selectedProductId) {
+                setStock({});
+                return;
+            }
+            setIsLoadingStock(true);
+            try {
+                const stockData = await getProductStockByWarehouse(Number(selectedProductId));
+                setStock(stockData);
+            } catch (error) {
+                 toast({ variant: "destructive", title: "Error", description: "No se pudo cargar el stock del producto." });
+            }
+            setIsLoadingStock(false);
+        }
+        loadStock();
+    }, [selectedProductId, toast]);
+
     const handleCheckAvailability = () => {
-        if (!selectedSku) {
+        if (!selectedProductId || !selectedOriginWarehouse) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Por favor, seleccione un producto (SKU) primero.",
+                description: "Por favor, seleccione un producto y un almacén de origen.",
             });
             return;
         }
 
-        const stockInfo = mockStockData[selectedSku as keyof typeof mockStockData];
-        const totalStock = Object.values(stockInfo).reduce((sum, current) => sum + current, 0);
+        const availableStock = stock[selectedOriginWarehouse] || 0;
 
-        if (totalStock >= quantityNeeded) {
+        if (availableStock >= quantityNeeded) {
             toast({
                 title: "Disponibilidad Confirmada",
                 description: (
                     <div className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-green-500" />
-                        <span>¡Sí hay disponibilidad para tu solicitud!</span>
+                        <span>¡Sí hay <b>{availableStock}</b> unidades disponibles en <b>{selectedOriginWarehouse}</b>!</span>
                     </div>
                 ),
                 className: 'bg-green-100 border-green-300 text-green-800',
@@ -58,7 +105,7 @@ export default function InventoryTransfersPage() {
                 description: (
                      <div className="flex items-center gap-2">
                         <XCircle className="h-5 w-5 text-red-500" />
-                        <span>No hay suficiente stock disponible.</span>
+                        <span>No hay suficiente stock. Disponibles: <b>{availableStock}</b>. Solicitados: <b>{quantityNeeded}</b>.</span>
                     </div>
                 ),
             });
@@ -92,8 +139,8 @@ export default function InventoryTransfersPage() {
                                             <Label htmlFor="entre-almacenes">Entre Almacenes</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="entre-coordenadas" id="entre-coordenadas" />
-                                            <Label htmlFor="entre-coordenadas">Entre Coordenadas (mismo almacén)</Label>
+                                            <RadioGroupItem value="entre-coordenadas" id="entre-coordenadas" disabled />
+                                            <Label htmlFor="entre-coordenadas" className="text-muted-foreground">Entre Coordenadas (Próximamente)</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
@@ -101,25 +148,23 @@ export default function InventoryTransfersPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-2">
                                         <Label htmlFor="origen-almacen">Almacén Origen</Label>
-                                        <Select>
+                                        <Select onValueChange={setSelectedOriginWarehouse} disabled={isLoadingProducts}>
                                             <SelectTrigger id="origen-almacen">
-                                                <SelectValue placeholder="Seleccione almacén origen" />
+                                                <SelectValue placeholder={isLoadingProducts ? "Cargando..." : "Seleccione almacén origen"} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="almacen-central">Almacén Central</SelectItem>
-                                                <SelectItem value="bodega-tecnicos">Bodega de Técnicos</SelectItem>
+                                                {warehouses.map(w => <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="destino-almacen">Almacén Destino</Label>
-                                        <Select>
+                                        <Select disabled={isLoadingProducts}>
                                             <SelectTrigger id="destino-almacen">
-                                                <SelectValue placeholder="Seleccione almacén destino" />
+                                                <SelectValue placeholder={isLoadingProducts ? "Cargando..." : "Seleccione almacén destino"} />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="almacen-central">Almacén Central</SelectItem>
-                                                <SelectItem value="bodega-tecnicos">Bodega de Técnicos</SelectItem>
+                                                {warehouses.map(w => <SelectItem key={w.id} value={w.name}>{w.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -127,14 +172,12 @@ export default function InventoryTransfersPage() {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="product-sku">Producto (SKU)</Label>
-                                    <Select onValueChange={setSelectedSku}>
+                                    <Select onValueChange={setSelectedProductId} disabled={isLoadingProducts}>
                                         <SelectTrigger id="product-sku">
-                                            <SelectValue placeholder="Seleccione un producto" />
+                                            <SelectValue placeholder={isLoadingProducts ? "Cargando..." : "Seleccione un producto"} />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="par-ip15-pan">PAR-IP15-PAN - Pantalla iPhone 15</SelectItem>
-                                            <SelectItem value="acc-cab-usbc">ACC-CAB-USBC - Cable USB-C 1m</SelectItem>
-                                            <SelectItem value="equ-sam-s24">EQU-SAM-S24 - Samsung Galaxy S24</SelectItem>
+                                            {products.map(p => <SelectItem key={p.id} value={String(p.id)}>{p.sku} - {p.nombre}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -159,11 +202,12 @@ export default function InventoryTransfersPage() {
                                 </div>
                                 
                                 <div className="flex justify-between items-center pt-4 border-t">
-                                    <Button variant="outline" onClick={handleCheckAvailability}>
-                                        Consultar Disponibilidad (Pre-solicitud)
+                                    <Button variant="outline" onClick={handleCheckAvailability} disabled={!selectedProductId || !selectedOriginWarehouse || isLoadingStock}>
+                                        {isLoadingStock && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} 
+                                        Consultar Disponibilidad
                                     </Button>
-                                    <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
-                                        Generar Solicitud de Traslado
+                                    <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" disabled>
+                                        Generar Solicitud (Próximamente)
                                     </Button>
                                 </div>
                             </CardContent>

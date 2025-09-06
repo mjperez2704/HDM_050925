@@ -1,11 +1,13 @@
 'use client';
 
-import { Key, useState} from 'react';
+import { AwaitedReactNode, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useState} from 'react';
 import {getWarehouseStructure} from '@/actions/inventory-actions';
 import {Button, buttonVariants} from '@/components/ui/button';
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
 import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
 import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription} from '@/components/ui/dialog';
+import {AddSectionForm} from '@/components/inventory/add-section-form';
+import {AddCoordinateForm} from '@/components/inventory/add-coordinate-form';
 import {EditSectionForm, SectionWithRules} from '@/components/inventory/edit-section-form';
 import {Badge} from '@/components/ui/badge';
 import {Home, Settings, Warehouse, PlusCircle, GripVertical, Tag, PackageCheck, Package} from 'lucide-react';
@@ -20,6 +22,11 @@ interface WarehouseManagementClientPageProps {
 export default function WarehouseManagementClientPage({initialWarehouseData}: WarehouseManagementClientPageProps) {
     const [warehouses, setWarehouses] = useState(initialWarehouseData);
     const [editingSection, setEditingSection] = useState<SectionWithRules | null>(null);
+    const [addingToWarehouseId, setAddingToWarehouseId] = useState<number | null>(null);
+    const [addingCoordinatesTo, setAddingCoordinatesTo] = useState<{
+        sectionId: number;
+        warehouseId: number;
+    } | null>(null);
 
     const handleOpenEditDialog = (section: SectionWithRules) => {
         setEditingSection(section);
@@ -27,6 +34,19 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
 
     const handleCloseEditDialog = () => {
         setEditingSection(null);
+    };
+
+    const handleCloseAddDialog = () => {
+        setAddingToWarehouseId(null);
+    }
+
+    const handleCloseAddCoordinatesDialog = () => {
+        setAddingCoordinatesTo(null);
+    }
+
+    const handleCreationSuccess = async () => {
+        const updatedData = await getWarehouseStructure();
+        setWarehouses(updatedData);
     };
 
     return (
@@ -48,8 +68,8 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
 
             <Accordion type="multiple" className="w-full space-y-4">
                 {warehouses.map((warehouse) => (
-                    <Card key={warehouse.id}>
-                        <AccordionItem value={`warehouse-${warehouse.id}`} className="border-b-0">
+                    <Card key={warehouse.name}>
+                        <AccordionItem value={warehouse.name} className="border-b-0">
                             <AccordionTrigger className="p-6 hover:no-underline">
                                 <div className="flex items-center gap-4">
                                     <Warehouse className="h-6 w-6 text-primary"/>
@@ -62,14 +82,17 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
                             </AccordionTrigger>
                             <AccordionContent className="p-6 pt-0">
                                 <div className="space-y-4">
-                                    <Button variant="outline" size="sm">
+                                    <Button variant="outline" size="sm"
+                                            onClick={() => setAddingToWarehouseId(warehouse.id)}>
                                         <PlusCircle className="mr-2 h-4 w-4"/>
                                         Añadir Sección
                                     </Button>
                                     <Accordion type="multiple" className="w-full space-y-2">
                                         {warehouse.sections.map((section) => (
-                                            <div key={section.id} className="rounded-md border">
-                                                <AccordionItem value={`section-${section.id}`} className="border-b-0">
+                                            <div key={`section-${warehouse.id}-${section.id}`}
+                                                 className="rounded-md border">
+                                                <AccordionItem value={`section-${warehouse.id}-${section.name}`}
+                                                               className="border-b-0">
                                                     <AccordionTrigger className="px-4 py-3 hover:no-underline">
                                                         <div className="flex flex-1 items-center justify-between">
                                                             <div className="flex items-center gap-3">
@@ -88,7 +111,10 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
                                                                 <div
                                                                     role="button"
                                                                     tabIndex={0}
-                                                                    className={buttonVariants({ variant: "ghost", size: "icon" })}
+                                                                    className={buttonVariants({
+                                                                        variant: "ghost",
+                                                                        size: "icon"
+                                                                    })}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation(); // Evita que el acordeón se cierre
                                                                         handleOpenEditDialog(section);
@@ -101,16 +127,31 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
                                                     </AccordionTrigger>
                                                     <AccordionContent className="px-4 pb-4">
                                                         <div className="space-y-2 rounded-lg bg-muted/50 p-4">
-                                                            <h4 className="font-semibold">Coordenadas</h4>
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <h4 className="font-semibold">Coordenadas</h4>
+                                                                <Button variant="outline" size="sm"
+                                                                        onClick={() => setAddingCoordinatesTo({
+                                                                            sectionId: section.id,
+                                                                            warehouseId: warehouse.id
+                                                                        })}>
+                                                                    <PlusCircle className="mr-2 h-4 w-4"/>
+                                                                    Añadir Coordenadas
+                                                                </Button>
+                                                            </div>
                                                             {section.coordinates.length > 0 ? (
                                                                 <ul className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
-                                                                    {section.coordinates.map((coord: { id: Key | null | undefined; name: string; skus: any[]; }) => (
-                                                                        <li key={coord.id} className="flex items-center gap-2 rounded-md bg-background p-2 text-sm">
-                                                                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                                                                            <span>{coord.name}</span>
-                                                                            {coord.skus.length > 0 && <Badge>{coord.skus.length}</Badge>}
-                                                                        </li>
-                                                                    ))}
+                                                                    {section.coordinates.map((coord: { name: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; skus: string | any[]; }) => {
+                                                                        return (
+                                                                            <li key={`coordinate-${section.id}-${coord.name}`}
+                                                                                className="flex items-center gap-2 rounded-md bg-background p-2 text-sm">
+                                                                                <GripVertical
+                                                                                    className="h-4 w-4 text-muted-foreground"/>
+                                                                                <span>{coord.name}</span>
+                                                                                {coord.skus.length > 0 &&
+                                                                                    <Badge>{coord.skus.length}</Badge>}
+                                                                            </li>
+                                                                        );
+                                                                    })}
                                                                 </ul>
                                                             ) : (
                                                                 <p className="text-sm text-muted-foreground">No hay coordenadas en esta sección.</p>
@@ -142,6 +183,45 @@ export default function WarehouseManagementClientPage({initialWarehouseData}: Wa
                             <EditSectionForm
                                 section={editingSection}
                                 onClose={handleCloseEditDialog}
+                            />
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Diálogo para añadir sección */}
+            <Dialog open={!!addingToWarehouseId} onOpenChange={(open) => !open && handleCloseAddDialog()}>
+                <DialogContent className="sm:max-w-[425px]">
+                    {addingToWarehouseId && (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Añadir Nueva Sección</DialogTitle>
+                                <DialogDescription>
+                                    Introduce la clave y el nombre para la nueva sección en el almacén seleccionado.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <AddSectionForm warehouseId={addingToWarehouseId} onClose={handleCloseAddDialog} />
+                        </>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Diálogo para añadir coordenadas */}
+            <Dialog open={!!addingCoordinatesTo} onOpenChange={(open) => !open && handleCloseAddCoordinatesDialog()}>
+                <DialogContent className="sm:max-w-[425px]">
+                    {addingCoordinatesTo && (
+                        <>
+                            <DialogHeader>
+                                <DialogTitle>Añadir Nuevas Coordenadas</DialogTitle>
+                                <DialogDescription>
+                                    Añade una o más coordenadas a la sección. Separa cada código con una coma.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <AddCoordinateForm
+                                warehouseId={addingCoordinatesTo.warehouseId}
+                                sectionId={addingCoordinatesTo.sectionId}
+                                onClose={handleCloseAddCoordinatesDialog}
+                                onSuccess={handleCreationSuccess}
                             />
                         </>
                     )}

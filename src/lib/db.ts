@@ -1,7 +1,7 @@
 import mysql from 'mysql2/promise';
 
 // Configuración de la conexión a partir de las variables de entorno
-const dbConfig = {
+export const dbConfig = {
   host: process.env.DB_HOST || '195.250.27.25',
   user: process.env.DB_USER || 'megashop_hdm',
   password: process.env.DB_PASSWORD || 'megashop_hdm',
