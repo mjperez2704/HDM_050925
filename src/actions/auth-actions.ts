@@ -52,7 +52,7 @@ export async function authenticate(_prevState: string | undefined, formData: For
             [user.id]
         ) as [RowDataPacket[]];
 
-        const permissions = permissionRows.map((p: { clave: string }) => p.clave);
+        const permissions = permissionRows.map((p: RowDataPacket) => p.clave as string);
 
         // 4. Create the session payload (JWT)
         const sessionPayload = {
@@ -75,7 +75,9 @@ export async function authenticate(_prevState: string | undefined, formData: For
             .sign(encodedSecret);
 
         // 6. Set the session cookie
-        cookies().set('session', token, {
+        (await
+            // 6. Set the session cookie
+            cookies()).set('session', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 60 * 60 * 8, // 8 hours
@@ -101,7 +103,7 @@ export interface SessionPayload {
 }
 
 async function getSession(): Promise<(SessionPayload & { iat: number; exp: number; }) | null> {
-  const sessionCookie = cookies().get('session')?.value;
+  const sessionCookie = (await cookies()).get('session')?.value;
   if (!sessionCookie) return null;
 
   try {
