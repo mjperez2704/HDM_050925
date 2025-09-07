@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import db from '@/lib/db';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import * as jose from 'jose';
 import type { RowDataPacket } from 'mysql2';
 
@@ -26,7 +26,6 @@ export async function authenticate(_prevState: string | undefined, formData: For
         const { credential, password } = validatedFields.data;
 
         // 1. Find the user by username or email
-        // Se corrige la destructuración y el tipado
         const [userRows] = await db.query(
             'SELECT * FROM seg_usuarios WHERE (username = ? OR email = ?) AND activo = 1 AND deleted_at IS NULL',
             [credential, credential]
@@ -40,22 +39,20 @@ export async function authenticate(_prevState: string | undefined, formData: For
         // 2. Compare the provided password with the stored hash
         const passwordsMatch = await bcrypt.compare(password, user.password_hash);
 
-        if (!password===user.password_hash) {
+        if (!passwordsMatch) {
            return 'Credenciales incorrectas. Inténtalo de nuevo.';
         }
 
         // 3. Authentication successful, fetch roles and permissions
-        // Se corrige la destructuración y el tipado
         const [permissionRows] = await db.query(
             `SELECT DISTINCT p.clave FROM seg_permisos p
-                                                      JOIN seg_rol_permiso rp ON p.id = rp.permiso_id
-                                                      JOIN seg_usuario_rol ur ON rp.rol_id = ur.rol_id
-                     WHERE ur.usuario_id = ?`,
+             JOIN seg_rol_permiso rp ON p.id = rp.permiso_id
+             JOIN seg_usuario_rol ur ON rp.rol_id = ur.rol_id
+             WHERE ur.usuario_id = ?`,
             [user.id]
         ) as [RowDataPacket[]];
 
-        // Ahora 'permissionRows' es un array y '.map' funciona correctamente
-        const permissions = permissionRows.map((p: RowDataPacket) => (p as { clave: string }).clave);
+        const permissions = permissionRows.map((p: { clave: string }) => p.clave);
 
         // 4. Create the session payload (JWT)
         const sessionPayload = {
@@ -68,7 +65,6 @@ export async function authenticate(_prevState: string | undefined, formData: For
         // 5. Sign the JWT
         const secret = process.env.JWT_SECRET;
         if (!secret) {
-            // Este es un error del servidor, no del usuario.
             throw new Error('La clave secreta para JWT no está configurada en las variables de entorno.');
         }
         const encodedSecret = new TextEncoder().encode(secret);
@@ -79,7 +75,7 @@ export async function authenticate(_prevState: string | undefined, formData: For
             .sign(encodedSecret);
 
         // 6. Set the session cookie
-        (await cookies()).set('session', token, {
+        cookies().set('session', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 60 * 60 * 8, // 8 hours
@@ -88,7 +84,6 @@ export async function authenticate(_prevState: string | undefined, formData: For
 
     } catch (error) {
         console.error('Authentication Error:', error);
-        // Se devuelve un mensaje genérico para no exponer detalles del error al cliente.
         return 'Ocurrió un error inesperado en el servidor.';
     }
 
@@ -106,7 +101,7 @@ export interface SessionPayload {
 }
 
 async function getSession(): Promise<(SessionPayload & { iat: number; exp: number; }) | null> {
-  const sessionCookie = (await cookies()).get('session')?.value;
+  const sessionCookie = cookies().get('session')?.value;
   if (!sessionCookie) return null;
 
   try {
@@ -114,7 +109,6 @@ async function getSession(): Promise<(SessionPayload & { iat: number; exp: numbe
     const { payload } = await jose.jwtVerify<SessionPayload & { iat: number; exp: number; }>(sessionCookie, secret);
     return payload;
   } catch (error) {
-    // Esto puede ocurrir si el token es inválido o ha expirado
     return null;
   }
 }
